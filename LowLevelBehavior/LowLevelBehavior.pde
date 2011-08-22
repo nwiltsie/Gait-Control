@@ -62,22 +62,22 @@ void loop() {
     Serial.println("Good Command!");
     switch (com){
       case 'l':
-        servos[3*leg_num].write(in_pos[leg_num]);
+        leg_in(leg_num);
         break;
       case 'L':
-        servos[3*leg_num].write(out_pos[leg_num]);
+        leg_out(leg_num);
         break;
       case 'w':
-        servos[3*leg_num+1].write(down_pos[leg_num]);
+        wing_down(leg_num);
         break;
       case 'W':
-        servos[3*leg_num+1].write(up_pos[leg_num]);
+        wing_up(leg_num);
         break;
       case 'm':
-        servos[3*leg_num+2].write(off_pos[leg_num]);
+        magnet_off(leg_num);
         break;
       case 'M':
-        servos[3*leg_num+2].write(on_pos[leg_num]);
+        magnet_on(leg_num);
         break; 
     }     
   }
