@@ -1,14 +1,18 @@
 from __future__ import division
 
-# Duration of each movement in seconds
-MOVEMENT_TIMES = {'up': 1,
-                  'down': 1,
-                  'forward': 1,
-                  'back': 1,
-                  'extend': 1,
-                  'retract': 1,
-                  'shimmy': 1,
-                  'reset': 1}
+# Firware update step size (must be equal to the value defined in
+# firmware/firmware.pde
+DT = 10
+
+# Speed of each movement in degrees/second 
+MOVEMENT_SPEEDS = {'up': 180,
+                  'down': 180,
+                  'forward': 180,
+                  'back': 180,
+                  'extend': 180,
+                  'retract': 180,
+                  'shimmy': 180,
+                  'reset': 180}
 
 # Servos, listed by their number according to the Arduino firmware
 SERVOS = {0: {'limb': 'RF', 
@@ -78,3 +82,7 @@ STEP_PATTERN =  [('magnet', 'retract'),
 RESET = [('elbow', 'back'),
          ('magnet', 'extend'),
          ('shoulder', 'down')]
+
+INITIAL = {'elbow': 'forward',
+           'magnet': 'extend',
+           'shoulder': 'down'}

@@ -28,14 +28,15 @@ class RobotCommander:
                 if entry[0] > cycle_time:
                     time.sleep(entry[0] - (time.time() - self.cycle_start))
                 print "Executing movement", entry
-                self.move(entry[1], entry[2])
+                self.move(entry[1], entry[2], entry[3])
             cycle_time = time.time() - self.cycle_start
             if cycle_time < self.gait_table.total_cycle_time:
                 time.sleep(self.gait_table.total_cycle_time - cycle_time)
 
-    def move(self, servo, position):
+    def move(self, servo, position, speed):
         self.port.write(servo)
         self.port.write(position)
+        self.port.write(speed)
 
 
 if __name__ == "__main__":

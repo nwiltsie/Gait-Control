@@ -1,5 +1,5 @@
 from __future__ import division
-from config import STEP_PATTERN, RESET, MOVEMENT_TIMES
+from config import STEP_PATTERN, RESET, MOVEMENT_SPEEDS, DT
 
 class GaitTable:
     '''A GaitTable is a list of (time, servo, position) tuples. The table
@@ -21,12 +21,19 @@ class GaitTable:
             self.add_entry(event, limb_name, wait_for_finish = True)
     
     def add_entry(self, event, limb_name, wait_for_finish = True):
+        joint_name = event[0]
+        position_name = event[1]
         limb = self.robot.limbs[limb_name]
+        joint = limb.joints[joint_name]
         self.table.append((self.current_time, 
-                           limb.joints[event[0]].servo,
-                           limb.joints[event[0]].positions[event[1]]))
+                           joint.servo,
+                           joint.positions[position_name],
+                           MOVEMENT_SPEEDS[position_name]))
+
         if wait_for_finish:
-            self.current_time += MOVEMENT_TIMES[event[1]]
+            travel_dist = abs(joint.positions[position_name]
+                              - joint.current_position)
+            self.current_time += travel_dist / MOVEMENT_SPEEDS[position_name]
         self.total_cycle_time = self.current_time
 
     def __iter__(self):

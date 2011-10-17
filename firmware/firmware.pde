@@ -55,6 +55,7 @@ void loop() {
     if (Serial.available() >= 2) {
         current_servo = Serial.read();
         desired_positions[current_servo] = Serial.read();
+        step_sizes[current_servo] = Serial.read();
     }
     for(i = 0; i < NUM_SERVOS, i++) {
         if (current_positions[i] <= desired_positions[i]) {
