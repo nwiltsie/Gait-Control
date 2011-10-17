@@ -1,0 +1,5 @@
+Running the robot: 
+Download and run firmware/firmware.pde on the Arduino, then run "python walk.py" and the robot should (theoretically) start walking.
+
+Configuring the robot:
+Things that are likely to need configuration on the PC side are stored in config.py. The speed at which the Arduino executes each motion can be adjusted in firmware.pde
