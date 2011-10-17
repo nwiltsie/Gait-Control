@@ -42,6 +42,8 @@ if __name__ == "__main__":
     robot = Robot()
     robot.register_servos(SERVOS)
     table = GaitTable(robot)
-    commander = RobotCommander(table)
-    commander.run()
+    for entry in table:
+        print entry
+    # commander = RobotCommander(table)
+    # commander.run()
 

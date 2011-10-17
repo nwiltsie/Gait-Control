@@ -4,7 +4,7 @@ from __future__ import division
 MOVEMENT_TIMES = {'up': 1,
                   'down': 1,
                   'forward': 1,
-                  'backward': 1,
+                  'back': 1,
                   'extend': 1,
                   'retract': 1,
                   'shimmy': 1,
@@ -62,7 +62,7 @@ SERVOS = {0: {'limb': 'RF',
           11: {'limb': 'RR',
               'joint': 'magnet',
               'positions': {'extend': 0,
-                            'retract': 180}},
+                            'retract': 180}}}
 
 STEP_PATTERN =  [('magnet', 'retract'),
                  ('shoulder', 'up'),
@@ -75,4 +75,6 @@ STEP_PATTERN =  [('magnet', 'retract'),
                  ('shoulder', 'down'),
                  ('magnet', 'extend')]
 
-RESET = [('elbow': 'back')]
+RESET = [('elbow', 'back'),
+         ('magnet', 'extend'),
+         ('shoulder', 'down')]
