@@ -21,7 +21,9 @@
 uint8_t desired_positions[NUM_SERVOS];
 uint8_t current_positions[NUM_SERVOS];
 
-uint8_t speeds[] = {1,
+#define DT 10 //ms per step
+
+uint8_t step_sizes[NUM_SERVOS] =  {
     1,
     1,
     1,
@@ -32,21 +34,22 @@ uint8_t speeds[] = {1,
     1,
     1,
     1,
-    1};
+    1,
+    1}; //degrees per step
+
+uint8_t i;
 
 uint8_t current_servo = 0;
 
 Servo servos[NUM_SERVOS];
 
 void setup() { 
-  for (int i=0; i<NUM_SERVOS; i++){
+  for (i=0; i<NUM_SERVOS; i++){
     servos[i].attach(2+i, 800, 2200); 
   }
   
   Serial.begin(BAUD_RATE);
 } 
- 
-uint8_t i;
  
 void loop() { 
     if (Serial.available() >= 2) {
@@ -55,24 +58,24 @@ void loop() {
     }
     for(i = 0; i < NUM_SERVOS, i++) {
         if (current_positions[i] <= desired_positions[i]) {
-            if ((desired_positions[i] - current_positions[i]) <= speeds[i]) {
+            if ((desired_positions[i] - current_positions[i]) <= step_sizes[i]) {
                 current_positions[i] = desired_positions[i];
             }
             else {
-                current_positions[i] += speeds[i];
+                current_positions[i] += step_sizes[i];
             }
         }
         else {
-            if ((current_positions[i] - desired_positions[i]) <= speeds[i]) {
+            if ((current_positions[i] - desired_positions[i]) <= step_sizes[i]) {
                 current_positions[i] = desired_positions[i];
             }
             else {
-                current_positions[i] -= speeds[i];
+                current_positions[i] -= step_sizes[i];
             }
         }
         servos[i].write(current_positions[i]);
     }
-    delay(10);
+    delay(DT);
 }
 
 
