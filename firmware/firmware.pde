@@ -72,6 +72,7 @@ void loop() {
         }
         servos[i].write(current_positions[i]);
     }
+    delay(10);
 }
 
 

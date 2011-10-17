@@ -29,7 +29,9 @@ class RobotCommander:
                     time.sleep(entry[0] - (time.time() - self.cycle_start))
                 print "Executing movement", entry
                 self.move(entry[1], entry[2])
-
+            cycle_time = time.time() - self.cycle_start
+            if cycle_time < self.gait_table.total_cycle_time:
+                time.sleep(self.gait_table.total_cycle_time - cycle_time)
 
     def move(self, servo, position):
         self.port.write(servo)

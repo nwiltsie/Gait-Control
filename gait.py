@@ -8,6 +8,7 @@ class GaitTable:
     def __init__(self, robot):
         self.robot = robot
         self.current_time = 0
+        self.total_cycle_time = 0
         self.table = []
         for limb in self.robot.limbs:
             for event in RESET:
@@ -19,12 +20,13 @@ class GaitTable:
         for event in STEP_PATTERN:
             self.add_entry(event)
     
-    def add_entry(self, event, sequential = True):
+    def add_entry(self, event, wait_for_finish = True):
         self.table.append((self.current_time, 
                            limb.joints[event[0]].servo,
                            limb.joints[event[0]].positions[event[1]]))
-        if sequential:
+        if wait_for_finish:
             self.current_time += MOVEMENT_TIMES[event[1]]
+        self.total_cycle_time = self.current_time
 
     def __iter__(self):
         return self.table

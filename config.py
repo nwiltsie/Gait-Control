@@ -1,4 +1,6 @@
+from __future__ import division
 
+# Duration of each movement in seconds
 MOVEMENT_TIMES = {'up': 1,
                   'down': 1,
                   'forward': 1,
@@ -8,6 +10,7 @@ MOVEMENT_TIMES = {'up': 1,
                   'shimmy': 1,
                   'reset': 1}
 
+# Servos, listed by their number according to the Arduino firmware
 SERVOS = {0: {'limb': 'RF', 
               'joint': 'elbow',
               'positions': {'forward': 0,
