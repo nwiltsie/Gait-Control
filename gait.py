@@ -24,14 +24,10 @@ class GaitTable:
     def add_entry(self, event, limb_name, wait_for_finish = True):
         joint_name = event[0]
         position_name = event[1]
-        speed = MOVEMENT_SPEEDS[position_name]
         limb = self.robot.limbs[limb_name]
         joint = limb.joints[joint_name]
         position = joint.positions[position_name]
-        # self.table.append((self.current_time, 
-                           # joint.servo,
-                           # position,
-                           # speed))
+        speed = MOVEMENT_SPEEDS[position_name]
         self.table.append((self.current_time, 
                            limb_name, 
                            joint_name, 
