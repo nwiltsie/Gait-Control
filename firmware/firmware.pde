@@ -52,7 +52,7 @@ void setup() {
 } 
  
 void loop() { 
-    if (Serial.available() >= 2) {
+    if (Serial.available() >= 3) {
         current_servo = Serial.read();
         desired_positions[current_servo] = Serial.read();
         step_sizes[current_servo] = Serial.read();
