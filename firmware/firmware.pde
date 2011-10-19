@@ -18,8 +18,14 @@
 
 #define NUM_SERVOS 12
 #define BAUD_RATE 9600
-uint8_t desired_positions[NUM_SERVOS];
-uint8_t current_positions[NUM_SERVOS];
+uint8_t desired_positions[NUM_SERVOS] = {10, 50, 68,
+                                         175, 33, 68,
+                                         10, 148, 68,
+                                         170, 151, 68};
+uint8_t current_positions[NUM_SERVOS] = {10, 70, 68,
+                                         175, 13, 68,
+                                         5, 168, 68,
+                                         170, 131, 68};
 
 #define DT 10 //ms per step, MUST be the same as DT in config.py
 
@@ -57,7 +63,7 @@ void loop() {
         desired_positions[current_servo] = Serial.read();
         step_sizes[current_servo] = Serial.read();
     }
-    for(i = 0; i < NUM_SERVOS, i++) {
+    for(i = 0; i < NUM_SERVOS; i++) {
         if (current_positions[i] <= desired_positions[i]) {
             if ((desired_positions[i] - current_positions[i]) <= step_sizes[i]) {
                 current_positions[i] = desired_positions[i];

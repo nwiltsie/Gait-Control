@@ -1,5 +1,5 @@
 from __future__ import division
-from config import STEP_PATTERN, RESET, DT, RESET_DURATION, LIMB_ORDER
+from config import STEP_PATTERN, RESET, RESET_DURATION, LIMB_ORDER
 
 class GaitTable:
     '''A GaitTable is a list of (time, servo, position) tuples. The table

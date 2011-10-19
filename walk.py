@@ -1,7 +1,7 @@
 from __future__ import division
 import time
 import serial
-from config import SERVOS
+from config import SERVOS, DT
 from robot import Robot
 from gait import GaitTable
 
@@ -10,16 +10,16 @@ Basic gait control program written by Robin Deits
 '''
 
 class RobotCommander:
-    def __init__(self, robot, gait_table, device = '/dev/tty.usbmodemfd141'):
+    def __init__(self, robot, gait_table, device = '/dev/tty.usbserial-A9007LE8'):
         self.gait_table = gait_table
         self.robot = robot
-        # self.port = serial.Serial(port=self.device,
-        #         baudrate=9600,
-        #         bytesize=serial.EIGHTBITS,
-        #         stopbits=serial.STOPBITS_ONE,
-        #         parity=serial.PARITY_NONE,
-        #         timeout=0.5,
-        #         writeTimeout=0)
+        self.port = serial.Serial(port=device,
+                baudrate=9600,
+                bytesize=serial.EIGHTBITS,
+                stopbits=serial.STOPBITS_ONE,
+                parity=serial.PARITY_NONE,
+                timeout=0.5,
+                writeTimeout=0)
 
     def run(self):
         '''Walk continuously'''
@@ -41,6 +41,7 @@ class RobotCommander:
             cycle_time = time.time() - self.cycle_start
             if entry_time > cycle_time:
                 time.sleep(entry_time - cycle_time)
+            print "Executing entry:", limb_name, joint_name, position_name, speed
             self.move(servo, position, speed)
         cycle_time = time.time() - self.cycle_start
         if cycle_time < self.gait_table.total_cycle_time:
@@ -48,9 +49,8 @@ class RobotCommander:
 
     def move(self, servo, position, speed):
         print "moving", servo, position, speed
-        # self.port.write(servo)
-        # self.port.write(position)
-        # self.port.write(speed)
+        step_size = speed / 1000 * DT
+        self.port.write(bytearray((servo,position,speed)))
 
 
 if __name__ == "__main__":
