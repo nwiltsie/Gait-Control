@@ -22,10 +22,12 @@ class RobotCommander:
         #         writeTimeout=0)
 
     def run(self):
+        '''Walk continuously'''
         while True:
             self.execute_cycle()
             
     def execute_cycle(self):
+        '''Reset, then step each of the four limbs'''
         self.cycle_start = time.time()
         for (entry_time, 
              limb_name, 

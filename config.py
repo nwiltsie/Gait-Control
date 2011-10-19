@@ -4,7 +4,9 @@ from __future__ import division
 # firmware/firmware.pde
 DT = 10
 
-# Servos, listed by their number according to the Arduino firmware
+# Servos, listed by their number according to the Arduino firmware.
+# elbows move their respective limbs forward and backward,
+# shoulders move them up and down
 SERVOS = {0: {'limb': 'RF', 
               'joint': 'elbow',
               'positions': {'forward': 176,
