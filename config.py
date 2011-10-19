@@ -4,16 +4,6 @@ from __future__ import division
 # firmware/firmware.pde
 DT = 10
 
-# Speed of each movement in degrees/second 
-MOVEMENT_SPEEDS = {'up': 10,
-                  'down': 10,
-                  'forward': 10,
-                  'back': 10,
-                  'on': 10,
-                  'off': 10,
-                  'shimmy': 10,
-                  'reset': 10}
-
 # Servos, listed by their number according to the Arduino firmware
 SERVOS = {0: {'limb': 'RF', 
               'joint': 'elbow',
@@ -68,24 +58,33 @@ SERVOS = {0: {'limb': 'RF',
               'positions': {'on': 160,
                             'off': 160}}}
 
-STEP_PATTERN =  [('magnet', 'off'),
-                 ('shoulder', 'up'),
-                 ('magnet', 'on'),
-                 ('shoulder', 'down'),
-                 ('elbow', 'shimmy'),
-                 ('elbow', 'back'),
-                 ('shoulder', 'up'),
-                 ('elbow', 'forward'),
-                 ('shoulder', 'down'),
-                 ('magnet', 'on')]
+# Each entry in this list is a tuple of (joint, position, speed). They will be
+# executed in sequence, each waiting for the previous to finish before starting,
+# for each limb. Speed is given in degrees/second.
+STEP_PATTERN =  [('magnet', 'off', 10),
+                 ('shoulder', 'up', 10),
+                 ('magnet', 'on', 10),
+                 ('shoulder', 'down', 10),
+                 ('elbow', 'shimmy', 10),
+                 ('elbow', 'back', 10),
+                 ('shoulder', 'up', 10),
+                 ('elbow', 'forward', 10),
+                 ('shoulder', 'down', 10),
+                 ('magnet', 'on', 10)]
 
-RESET = [('elbow', 'back'),
-         ('magnet', 'on'),
-         ('shoulder', 'down')]
+# The RESET list functions just like the step list, but it will be executed for
+# all limbs simultaneously at the beginning of the cycle
+RESET = [('elbow', 'back', 10),
+         ('magnet', 'on', 10),
+         ('shoulder', 'down', 10)]
 
-# seconds required to execute the reset motion at the beginning of each cycle
+# Seconds required to execute the reset motion at the beginning of each cycle
 RESET_DURATION = 5 
 
+# Initial configuration of each joint before the start of each cycle. 
 INITIAL = {'elbow': 'forward',
            'magnet': 'on',
            'shoulder': 'down'}
+
+# The order in which the limbs execute their steps
+LIMB_ORDER = ['RF', 'LF', 'RR', 'LR']

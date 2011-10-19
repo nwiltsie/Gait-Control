@@ -21,7 +21,7 @@
 uint8_t desired_positions[NUM_SERVOS];
 uint8_t current_positions[NUM_SERVOS];
 
-#define DT 10 //ms per step
+#define DT 10 //ms per step, MUST be the same as DT in config.py
 
 uint8_t step_sizes[NUM_SERVOS] =  {
     1,
