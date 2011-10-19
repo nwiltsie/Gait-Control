@@ -42,4 +42,5 @@ class GaitTable:
         joint.current_position = position
 
     def __iter__(self):
+        '''This allows us to call "for entry in gait_table:"'''
         return self.table.__iter__()

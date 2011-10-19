@@ -23,23 +23,26 @@ class RobotCommander:
 
     def run(self):
         while True:
-            self.cycle_start = time.time()
-            for (entry_time, 
-                 limb_name, 
-                 joint_name, 
-                 position_name,
-                 speed) in self.gait_table:
-                cycle_time = time.time() - self.cycle_start
-                if entry_time > cycle_time:
-                    time.sleep(entry_time - (time.time() - self.cycle_start))
-                limb = self.robot.limbs[limb_name]
-                joint = limb.joints[joint_name]
-                servo = joint.servo
-                position = joint.positions[position_name]
-                self.move(servo, position, speed)
+            self.execute_cycle()
+            
+    def execute_cycle(self):
+        self.cycle_start = time.time()
+        for (entry_time, 
+             limb_name, 
+             joint_name, 
+             position_name,
+             speed) in self.gait_table:
+            limb = self.robot.limbs[limb_name]
+            joint = limb.joints[joint_name]
+            servo = joint.servo
+            position = joint.positions[position_name]
             cycle_time = time.time() - self.cycle_start
-            if cycle_time < self.gait_table.total_cycle_time:
-                time.sleep(self.gait_table.total_cycle_time - cycle_time)
+            if entry_time > cycle_time:
+                time.sleep(entry_time - cycle_time)
+            self.move(servo, position, speed)
+        cycle_time = time.time() - self.cycle_start
+        if cycle_time < self.gait_table.total_cycle_time:
+            time.sleep(self.gait_table.total_cycle_time - cycle_time)
 
     def move(self, servo, position, speed):
         print "moving", servo, position, speed
