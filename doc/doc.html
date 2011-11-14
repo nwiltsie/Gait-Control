@@ -529,6 +529,27 @@ The planar model is just the axial model mirrored about its centerline, with the
 
 </pre>
 </div>
+<div title="2011-11-14 Comparing axial and planar" modifier="YourName" created="201111142114" modified="201111142134" tags="journal" changecount="11">
+<pre>I'm comparing the magnetic field produced by a current loop with the field produced by two parallel wires.
+
+!!!Planar setup (two parallel wires):
+Wires are parallel to the y axis and a distance 2D apart (at x = D and x = -D) with current running in opposite directions. We measure the H field in the z direction between them at a position (x, 0). I calculated that the field between them should be:
+\[
+H = \frac{I}{\pi D \left(1 - \frac{x^2}{D^2}\right)}
+\]
+
+!!!Axial setup (one loop of wire):
+A single wire laid out as a circle with radius R = D in the x-y plane centered at the origin. The field at a point (x, 0) should be: 
+\[
+H = \frac{I R^2}{4 \pi} \int_0 ^{2 \pi} \frac{1 - \frac{x}{R} \cos{\theta}}{\left(x^2 - 2 x R \cos{\theta} + R^2 \right)^{3/2}}
+\]
+
+To check these equations, I created two new setups in FEMM:
+[[axial_basic2.fem]]
+[[planar_basic2.fem]]
+
+These files set D = 100m, I = 1A, R = 100m. I plotted the results from the equations against the results from the simulator: [[parallel_vs_coil.fig]]. The simulator results are slightly different; I'm not currently sure why that is. The results from my equation for the coil are exactly the same as those given by this calculator: http://www.netdenizen.com/emagnet/offaxis/iloopcalculator.htm</pre>
+</div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
 |Name:|CloseOnCancelPlugin|
@@ -1402,6 +1423,74 @@ window.getBackupPath = function(localPath) {
 </div>
 <div title="MainMenu" modifier="RobinDeits" created="201012042255" modified="201012052145" changecount="3">
 <pre>[[Journals|journal]] [[Setup]]</pre>
+</div>
+<div title="MathJaxPlugin" modifier="RobinDeits" created="201111142113" tags="systemConfig" changecount="1">
+<pre>/***
+|''Name:''|MathJaxPlugin|
+|''Description:''|Enable LaTeX formulas for TiddlyWiki|
+|''Version:''|1.0.0|
+|''Date:''|Jun 25, 2011|
+|''Source:''|http://www.guyrutenberg.com/2011/06/25/latex-for-tiddlywiki-a-mathjax-plugin|
+|''Author:''|Guy Rutenberg|
+|''License:''|[[BSD open source license]]|
+|''~CoreVersion:''|2.5.0|
+ 
+Currently the plugin supports the following delemiters:
+* &quot;&quot;&quot;$$&quot;&quot;&quot;..&quot;&quot;&quot;$$&quot;&quot;&quot; - Inline equations
+* &quot;&quot;&quot;\(&quot;&quot;&quot;..&quot;&quot;&quot;\)&quot;&quot;&quot; - Inline equations
+* &quot;&quot;&quot;\[&quot;&quot;&quot;..&quot;&quot;&quot;\]&quot;&quot;&quot; - Display equations
+***/
+ 
+//{{{
+config.extensions.MathJax = {
+  mathJaxScript : &quot;http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;,
+  // uncomment the following line if you want to access MathJax using SSL
+  // mathJaxScript : &quot;https://d3eoax9i5htok0.cloudfront.net/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;,
+  displayTiddler_old : story.displayTiddler,
+  displayTiddler: function(TiddlerName) {
+    config.extensions.MathJax.displayTiddler_old.apply(this, arguments);
+    MathJax.Hub.Queue([&quot;Typeset&quot;, MathJax.Hub]);
+  }
+};
+ 
+jQuery.getScript(config.extensions.MathJax.mathJaxScript, function(){
+    MathJax.Hub.Config({
+      extensions: [&quot;tex2jax.js&quot;],
+      &quot;HTML-CSS&quot;: { scale: 100 }
+    });
+ 
+    MathJax.Hub.Startup.onload();
+    story.displayTiddler = config.extensions.MathJax.displayTiddler;
+});
+ 
+config.formatters.push({
+	name: &quot;mathJaxFormula&quot;,
+	match: &quot;\\\\\\[|\\$\\$|\\\\\\(&quot;,
+	//lookaheadRegExp: /(?:\\\[|\$\$)((?:.|\n)*?)(?:\\\]|$$)/mg,
+	handler: function(w)
+	{
+		switch(w.matchText) {
+		case &quot;\\[&quot;: // displayed equations
+			this.lookaheadRegExp = /\\\[((?:.|\n)*?)(\\\])/mg;
+			break;
+		case &quot;$$&quot;: // inline equations
+			this.lookaheadRegExp = /\$\$((?:.|\n)*?)(\$\$)/mg;
+			break;
+		case &quot;\\(&quot;: // inline equations
+			this.lookaheadRegExp = /\\\(((?:.|\n)*?)(\\\))/mg;
+			break;
+		default:
+			break;
+		}
+		this.lookaheadRegExp.lastIndex = w.matchStart;
+		var lookaheadMatch = this.lookaheadRegExp.exec(w.source);
+		if(lookaheadMatch &amp;&amp; lookaheadMatch.index == w.matchStart) {
+			createTiddlyElement(w.output,&quot;span&quot;,null,null,lookaheadMatch[0]);
+			w.nextMatch = this.lookaheadRegExp.lastIndex;
+		}
+	}
+});
+//}}}</pre>
 </div>
 <div title="MptwBlack" modifier="MPTW" created="201004041423" modified="201009151231" tags="systemPalette">
 <pre>Name: MptwBlack
@@ -3555,14 +3644,2409 @@ merge(config.macros,{
 !Content
 &lt;&lt;tiddler &quot;../Magnetics_testing/Comparing_Axial_Planar/axial.fem&quot;&gt;&gt;</pre>
 </div>
+<div title="axial_basic2.fem" modifier="YourName" created="201111142127" changecount="1">
+<pre>/%
+!link
+[[axial_basic2.fem|file:////Users/robindeits/Documents/Battelle/Work_Projects/MR_Robot/Magnetics_testing/Comparing_Axial_Planar/axial_basic2.fem]]
+!end
+%/[Format]      =  4.0
+[Frequency]   =  0
+[Precision]   =  1e-008
+[MinAngle]    =  30
+[Depth]       =  1
+[LengthUnits] =  meters
+[ProblemType] =  axisymmetric
+[Coordinates] =  cartesian
+[ACSolver]    =  0
+[Comment]     =  &quot;Add comments here.&quot;
+[PointProps]   = 0
+[BdryProps]   = 1
+  &lt;BeginBdry&gt;
+    &lt;BdryName&gt; = &quot;Periodic&quot;
+    &lt;BdryType&gt; = 4
+    &lt;A_0&gt; = 0
+    &lt;A_1&gt; = 0
+    &lt;A_2&gt; = 0
+    &lt;Phi&gt; = 0
+    &lt;c0&gt; = 0
+    &lt;c0i&gt; = 0
+    &lt;c1&gt; = 0
+    &lt;c1i&gt; = 0
+    &lt;Mu_ssd&gt; = 0
+    &lt;Sigma_ssd&gt; = 0
+  &lt;EndBdry&gt;
+[BlockProps]  = 130
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Air&quot;
+    &lt;Mu_x&gt; = 1
+    &lt;Mu_y&gt; = 1
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;LORD MRF 132-DG - mu=6&quot;
+    &lt;Mu_x&gt; = 6
+    &lt;Mu_y&gt; = 6
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 19
+      0	0
+      0.10315186246418299	12098.2986767486
+      0.16045845272206299	19659.7353497164
+      0.229226361031519	30245.7466918715
+      0.30945558739255002	43856.3327032136
+      0.37249283667621802	57466.918714555803
+      0.424068767908309	66540.642722117205
+      0.48137535816618898	80151.2287334594
+      0.555873925501433	95274.102079395103
+      0.60744985673352403	116446.124763705
+      0.68194842406876799	139130.43478260899
+      0.722063037249284	154253.30812854401
+      0.78510028653295105	178449.905482042
+      0.83094555873925502	198109.64083175801
+      0.87679083094555899	222306.238185255
+      0.916905444126075	243478.26086956501
+      0.95128939828080195	263137.99621928198
+      0.97421203438395398	279773.156899811
+      0.99713467048710602	290359.16824196599
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Alnico 5&quot;
+    &lt;Mu_x&gt; = 1.5
+    &lt;Mu_y&gt; = 1.5
+    &lt;H_c&gt; = 50963
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 2.25
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 26
+      0	0
+      0.12561	253.85213400000001
+      0.30829000000000001	707.44372199999998
+      0.48333999999999999	1452.2888559999999
+      0.61734	2162.915677
+      0.75499000000000005	3024.739693
+      0.84413000000000005	3845.9792000000002
+      0.92927999999999999	5110.4652230000002
+      0.98077000000000003	6495.9090020000003
+      1.02467	8023.0006810000004
+      1.0464	9234.1697980000008
+      1.0714999999999999	11043.761501000001
+      1.0929	12850.170104999999
+      1.1068	14650.212512
+      1.1242000000000001	16900.663407
+      1.1378999999999999	19147.135429000002
+      1.1516999999999999	21245.593353
+      1.1652	23790.480893
+      1.175	26182.579688000002
+      1.1915	30071.530722
+      1.2045999999999999	33361.263396000002
+      1.2177	36650.996070000001
+      1.2273000000000001	39490.320254999999
+      1.2397	43971.486832000002
+      1.2487999999999999	47704.784332000003
+      1.2544	50988.028258999999
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Alnico 6&quot;
+    &lt;Mu_x&gt; = 3.2999999999999998
+    &lt;Mu_y&gt; = 3.2999999999999998
+    &lt;H_c&gt; = 59907
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 2.25
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 26
+      0	0
+      0.10402	1131.5899999999999
+      0.18934000000000001	2098.46
+      0.26712000000000002	3207.77
+      0.33743000000000001	4310.71
+      0.40393000000000001	5560.0799999999999
+      0.47026000000000001	7106.2700000000004
+      0.52539000000000002	8643.7000000000007
+      0.57662999999999998	10475.6
+      0.63507999999999998	12760.200000000001
+      0.69674999999999998	15942.6
+      0.74002000000000001	18661.700000000001
+      0.78312000000000004	21679.299999999999
+      0.81535999999999997	24090.5
+      0.84031	26198.5
+      0.87238000000000004	28908.099999999999
+      0.90412000000000003	32213.799999999999
+      0.92864999999999998	35065.800000000003
+      0.95318000000000003	37917.900000000001
+      0.97397999999999996	40767.5
+      0.99451999999999996	44062.800000000003
+      1.0149999999999999	47507.800000000003
+      1.0354000000000001	51102.300000000003
+      1.0487	53944.800000000003
+      1.0622	56489.599999999999
+      1.0751999999999999	59928.199999999997
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Alnico 8&quot;
+    &lt;Mu_x&gt; = 6.6779999999999999
+    &lt;Mu_y&gt; = 6.6779999999999999
+    &lt;H_c&gt; = 109300
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 2.25
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 10
+      0	0
+      0.11536	8340
+      0.23438000000000001	18512
+      0.30429	24866
+      0.35666999999999999	29808
+      0.44341000000000003	39967
+      0.54315999999999998	54772
+      0.66569	77603
+      0.74668000000000001	95215
+      0.80359000000000003	109301
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 32 MGOe&quot;
+    &lt;Mu_x&gt; = 1.0449999999999999
+    &lt;Mu_y&gt; = 1.0449999999999999
+    &lt;H_c&gt; = 883310
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.69399999999999995
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 37 MGOe&quot;
+    &lt;Mu_x&gt; = 1.048
+    &lt;Mu_y&gt; = 1.048
+    &lt;H_c&gt; = 950000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.66700000000000004
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 40 MGOe&quot;
+    &lt;Mu_x&gt; = 1.0489999999999999
+    &lt;Mu_y&gt; = 1.0489999999999999
+    &lt;H_c&gt; = 979000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.66700000000000004
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 52 MGOe&quot;
+    &lt;Mu_x&gt; = 1.05
+    &lt;Mu_y&gt; = 1.05
+    &lt;H_c&gt; = 891300
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.66700000000000004
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 6
+      0	0
+      0.42799999999999999	95490
+      0.53300000000000003	175100
+      0.63800000000000001	254600
+      0.84799999999999998	413800
+      1.478	891300
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 10 MGOe (Bonded)&quot;
+    &lt;Mu_x&gt; = 1.2230000000000001
+    &lt;Mu_y&gt; = 1.2230000000000001
+    &lt;H_c&gt; = 445634
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@20C&quot;
+    &lt;Mu_x&gt; = 1.02782
+    &lt;Mu_y&gt; = 1.02782
+    &lt;H_c&gt; = 862360
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.625
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@60C&quot;
+    &lt;Mu_x&gt; = 1.04816
+    &lt;Mu_y&gt; = 1.04816
+    &lt;H_c&gt; = 810310
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.625
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@100C&quot;
+    &lt;Mu_x&gt; = 1.07653
+    &lt;Mu_y&gt; = 1.07653
+    &lt;H_c&gt; = 761621
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.625
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@140C&quot;
+    &lt;Mu_x&gt; = 1.08829
+    &lt;Mu_y&gt; = 1.08829
+    &lt;H_c&gt; = 705155
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@180C&quot;
+    &lt;Mu_x&gt; = 1.1462600000000001
+    &lt;Mu_y&gt; = 1.1462600000000001
+    &lt;H_c&gt; = 638713
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.625
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Ceramic 5&quot;
+    &lt;Mu_x&gt; = 1.8859999999999999
+    &lt;Mu_y&gt; = 1.8859999999999999
+    &lt;H_c&gt; = 191262
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 11
+      0	0
+      0.11225	9979.6124409999993
+      0.119417	10822.945775
+      0.15196999999999999	21699.612441000001
+      0.177037	36726.279108000002
+      0.23735000000000001	78449.612441000005
+      0.259793	94301.612441000005
+      0.31205699999999997	131847.945775
+      0.33257700000000001	146865.612441
+      0.354493	162718.27910799999
+      0.39151000000000002	191082.325775
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Ceramic 8&quot;
+    &lt;Mu_x&gt; = 1.4384600000000001
+    &lt;Mu_y&gt; = 1.4384600000000001
+    &lt;H_c&gt; = 233568
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 9
+      0	0
+      0.040029000000000002	1488.09925
+      0.069106000000000001	5665.9179999999997
+      0.087951000000000001	15231.1335
+      0.11024	30247.407749999998
+      0.15995000000000001	63009.464500000002
+      0.24912000000000001	128493.78925
+      0.32113999999999998	180339.326275
+      0.39145000000000002	233567.92025
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;SmCo 20 MGOe&quot;
+    &lt;Mu_x&gt; = 1.0345
+    &lt;Mu_y&gt; = 1.0345
+    &lt;H_c&gt; = 693000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.1759999999999999
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;SmCo 24 MGOe&quot;
+    &lt;Mu_x&gt; = 1.1100000000000001
+    &lt;Mu_y&gt; = 1.1100000000000001
+    &lt;H_c&gt; = 724000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.1759999999999999
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;SmCo 27 MGOe&quot;
+    &lt;Mu_x&gt; = 1.103
+    &lt;Mu_y&gt; = 1.103
+    &lt;H_c&gt; = 772000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.1759999999999999
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;US Steel Type 2-S 0.018 inch thickness&quot;
+    &lt;Mu_x&gt; = 9400
+    &lt;Mu_y&gt; = 9400
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 6.25
+    &lt;d_lam&gt; = 0.4572
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 0.97999999999999998
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 57
+      0	0
+      0.0044450000000000002	9.5103069999999992
+      0.0058190000000000004	11.21247
+      0.0071929999999999997	13.219414
+      0.0085679999999999992	15.585253
+      0.012898	18.371262000000002
+      0.017228	21.656220999999999
+      0.027470000000000001	25.5213
+      0.046579000000000002	30.061992
+      0.092288999999999996	35.364241
+      0.22076000000000001	41.430433999999998
+      0.4113	48.386302999999998
+      0.60185	56.510370000000002
+      0.77170000000000005	66.066035999999997
+      0.91495000000000004	77.340575999999999
+      1.0464	90.591025999999999
+      1.1600999999999999	106.21208900000001
+      1.2619	124.594492
+      1.3431	146.31119100000001
+      1.3947000000000001	172.06246999999999
+      1.4286000000000001	202.52473699999999
+      1.4507000000000001	238.525598
+      1.4668000000000001	281.01202599999999
+      1.4830000000000001	331.05831499999999
+      1.4932000000000001	390.144609
+      1.5064	459.69534399999998
+      1.5166999999999999	541.73178900000005
+      1.5268999999999999	638.41049399999997
+      1.5371999999999999	752.33364300000005
+      1.5474000000000001	886.57292700000005
+      1.5576000000000001	1044.772997
+      1.5679000000000001	1231.22308
+      1.5840000000000001	1450.5386699999999
+      1.5972	1709.1655450000001
+      1.6104000000000001	2013.867792
+      1.6266	2372.5235849999999
+      1.6427	2795.1596880000002
+      1.6589	3292.9965269999998
+      1.6779999999999999	3878.9256599999999
+      1.6971000000000001	4569.1013169999997
+      1.7161999999999999	5382.0650580000001
+      1.7353000000000001	6339.7006929999998
+      1.7604	7465.5631620000004
+      1.7854000000000001	8791.7222000000002
+      1.8104	10352.236975
+      1.8384	12188.885675
+      1.8723000000000001	14347.823249999999
+      1.9060999999999999	16887.93705
+      1.9459	19872.0933
+      1.9886999999999999	23380.665274999999
+      2.0344000000000002	27504.371325
+      2.0741999999999998	32364.965025000001
+      2.1080999999999999	38095.340799999998
+      2.1389999999999998	44847.491674999997
+      2.1610999999999998	52819.565625000003
+      2.1772	62227.217675
+      2.1903999999999999	73321.116949999996
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;US Steel Type 2-S 0.024 inch thickness&quot;
+    &lt;Mu_x&gt; = 7400
+    &lt;Mu_y&gt; = 7400
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 6.25
+    &lt;d_lam&gt; = 0.60960000000000003
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 0.97999999999999998
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 66
+      0	0
+      0.0046779999999999999	9.1307220000000004
+      0.0064009999999999996	10.474786
+      0.008123	12.016997999999999
+      0.0098449999999999996	13.786006
+      0.014524	15.816824
+      0.019202	18.147649000000001
+      0.023879999999999998	20.822248999999999
+      0.031514	23.893940000000001
+      0.048016000000000003	27.429568
+      0.067473000000000005	31.492000000000001
+      0.10170999999999999	36.179115000000003
+      0.15959000000000001	41.607095999999999
+      0.26477000000000001	47.948627000000002
+      0.39655000000000001	55.320686000000002
+      0.53718999999999995	63.850599000000003
+      0.67193000000000003	73.677623999999994
+      0.79779999999999995	84.980812
+      0.90297000000000005	97.936029000000005
+      1.0052000000000001	112.84885300000001
+      1.0955999999999999	129.96597299999999
+      1.1800999999999999	149.637531
+      1.2557	172.22162599999999
+      1.3165	198.08431300000001
+      1.3654999999999999	227.718974
+      1.3997999999999999	261.61103100000003
+      1.4252	300.436893
+      1.4446000000000001	344.928674
+      1.4611000000000001	395.961724
+      1.4717	454.42731400000002
+      1.4852000000000001	521.59868100000006
+      1.4987999999999999	598.69336299999998
+      1.5094000000000001	687.10396600000001
+      1.52	788.557321
+      1.5276000000000001	904.87575200000003
+      1.5382	1038.486375
+      1.5488	1191.832218
+      1.5593999999999999	1367.8576479999999
+      1.5729	1569.9844969999999
+      1.5834999999999999	1801.7937549999999
+      1.5941000000000001	2067.9009150000002
+      1.6047	2373.239783
+      1.6182000000000001	2724.0174019999999
+      1.6288	3126.281665
+      1.6424000000000001	3588.30863
+      1.6589	4119.2497100000001
+      1.6754	4728.7337829999997
+      1.7083999999999999	6231.5548699999999
+      1.7307999999999999	7155.3700669999998
+      1.7532000000000001	8216.3768749999999
+      1.7756000000000001	9433.9126250000008
+      1.8009999999999999	10834.476624999999
+      1.8292999999999999	12443.533675000001
+      1.8575999999999999	14292.119000000001
+      1.8889	16417.634024999999
+      1.9232	18861.459050000001
+      1.9574	21668.953249999999
+      1.9916	24894.229325
+      2.0287999999999999	28603.336599999999
+      2.0659999999999998	32864.711725000001
+      2.0973000000000002	37751.565999999999
+      2.1255999999999999	43359.392424999998
+      2.1480000000000001	49787.662875000002
+      2.1675	57161.314025
+      2.181	65610.852975000002
+      2.1945999999999999	75308.167125000007
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Pure Iron&quot;
+    &lt;Mu_x&gt; = 14872
+    &lt;Mu_y&gt; = 14872
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 10.44
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 21
+      0	0
+      0.22706499999999999	13.898400000000001
+      0.45412999999999998	27.796700000000001
+      0.68119499999999999	42.397399999999998
+      0.90825999999999996	61.415700000000001
+      1.13533	82.382400000000004
+      1.36239	144.66900000000001
+      1.58935	897.75999999999999
+      1.81236	4581.7399999999998
+      2.01004	17736.200000000001
+      2.1331600000000002	41339.300000000003
+      2.1999900000000001	68321.800000000003
+      2.2547899999999998	95685.5
+      2.2999299999999998	123355
+      2.3425099999999999	151083
+      2.3787600000000002	178954
+      2.4150100000000001	206825
+      2.45126	234696
+      2.4874999999999998	262568
+      2.5237500000000002	290439
+      2.5600000000000001	318310
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1006 Steel&quot;
+    &lt;Mu_x&gt; = 1404
+    &lt;Mu_y&gt; = 1404
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 38
+      0	0
+      0.38833000000000001	79.577472
+      0.48252400000000001	100.182101
+      0.59529299999999996	126.121793
+      0.726634	158.77793
+      0.87345300000000003	199.88957099999999
+      1.0281009999999999	251.646061
+      1.178099	316.80362000000002
+      1.308718	398.83212800000001
+      1.408663	502.09990099999999
+      1.4756450000000001	632.10632499999997
+      1.5169570000000001	795.77471500000001
+      1.544297	1001.821011
+      1.567545	1261.2179289999999
+      1.592042	1587.779301
+      1.619381	1998.89571
+      1.649135	2516.4606050000002
+      1.6799839999999999	3168.036204
+      1.7105109999999999	3988.3212819999999
+      1.7400770000000001	5020.9990129999996
+      1.769441	6321.0632500000002
+      1.8005549999999999	7957.747155
+      1.8356250000000001	10018.210114
+      1.8761209999999999	12612.179292999999
+      1.9221870000000001	15877.793009999999
+      1.972386	19988.957103000001
+      2.0236740000000002	25164.606051999999
+      2.0719500000000002	31680.362036999999
+      2.1135380000000001	39883.212823000002
+      2.1470829999999999	50209.990126999997
+      2.1744270000000001	63210.632496999999
+      2.1996039999999999	79577.471546000001
+      2.2269369999999999	100182.101136
+      2.2598500000000001	126121.79292599999
+      2.3009309999999998	158777.930096
+      2.3525969999999998	199889.57102999999
+      2.4176359999999999	251646.06052200001
+      2.4995159999999998	316803.62037000002
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1010 Steel&quot;
+    &lt;Mu_x&gt; = 902.60000000000002
+    &lt;Mu_y&gt; = 902.60000000000002
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 38
+      0	0
+      0.21186199999999999	79.577472
+      0.26566499999999998	100.182101
+      0.33237699999999998	126.121793
+      0.414377	158.77793
+      0.51381100000000002	199.88957099999999
+      0.63189899999999999	251.646061
+      0.76778400000000002	316.80362000000002
+      0.917018	398.83212800000001
+      1.0703530000000001	502.09990099999999
+      1.2142550000000001	632.10632499999997
+      1.3346370000000001	795.77471500000001
+      1.4229810000000001	1001.821011
+      1.480634	1261.2179289999999
+      1.5172140000000001	1587.779301
+      1.5445150000000001	1998.89571
+      1.571296	2516.4606050000002
+      1.6020490000000001	3168.036204
+      1.638404	3988.3212819999999
+      1.68049	5020.9990129999996
+      1.727311	6321.0632500000002
+      1.776659	7957.747155
+      1.8254010000000001	10018.210114
+      1.870557	12612.179292999999
+      1.910809	15877.793009999999
+      1.947222	19988.957103000001
+      1.9823280000000001	25164.606051999999
+      2.0182519999999999	31680.362036999999
+      2.0553979999999998	39883.212823000002
+      2.0925449999999999	50209.990126999997
+      2.1280950000000001	63210.632496999999
+      2.1616119999999999	79577.471546000001
+      2.1946439999999998	100182.101136
+      2.2303389999999998	126121.79292599999
+      2.272386	158777.930096
+      2.3242820000000002	199889.57102999999
+      2.3893559999999998	251646.06052200001
+      2.471238	316803.62037000002
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1018 Steel&quot;
+    &lt;Mu_x&gt; = 529
+    &lt;Mu_y&gt; = 529
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 13
+      0	0
+      0.25030000000000002	238.73249999999999
+      0.92500000000000004	795.77499999999998
+      1.25	1591.55
+      1.3899999999999999	2387.3249999999998
+      1.5249999999999999	3978.875
+      1.71	7957.75
+      1.8700000000000001	15915.5
+      1.9550000000000001	23873.25
+      2.02	39788.75
+      2.1099999999999999	79577.5
+      2.2250000000000001	159155
+      2.4300000000000002	318310
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1020 Steel&quot;
+    &lt;Mu_x&gt; = 760
+    &lt;Mu_y&gt; = 760
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 38
+      0	0
+      0.16625200000000001	79.577472
+      0.20872499999999999	100.182101
+      0.26163500000000001	126.121793
+      0.32714599999999999	158.77793
+      0.407495	199.88957099999999
+      0.50460400000000005	251.646061
+      0.61936599999999997	316.80362000000002
+      0.750502	398.83212800000001
+      0.89319499999999996	502.09990099999999
+      1.0382579999999999	632.10632499999997
+      1.173276	795.77471500000001
+      1.2867310000000001	1001.821011
+      1.3735329999999999	1261.2179289999999
+      1.4376580000000001	1587.779301
+      1.4891890000000001	1998.89571
+      1.5383439999999999	2516.4606050000002
+      1.591321	3168.036204
+      1.6497230000000001	3988.3212819999999
+      1.711927	5020.9990129999996
+      1.7747120000000001	6321.0632500000002
+      1.8349759999999999	7957.747155
+      1.8914420000000001	10018.210114
+      1.945262	12612.179292999999
+      1.998705	15877.793009999999
+      2.0528520000000001	19988.957103000001
+      2.1061839999999998	25164.606051999999
+      2.1551490000000002	31680.362036999999
+      2.1963750000000002	39883.212823000002
+      2.2290079999999999	50209.990126999997
+      2.2554500000000002	63210.632496999999
+      2.2800530000000001	79577.471546000001
+      2.3071359999999999	100182.101136
+      2.3399749999999999	126121.79292599999
+      2.3810440000000002	158777.930096
+      2.4327079999999999	199889.57102999999
+      2.4977480000000001	251646.06052200001
+      2.5796269999999999	316803.62037000002
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1117 Steel&quot;
+    &lt;Mu_x&gt; = 1777
+    &lt;Mu_y&gt; = 1777
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 9
+      0	0
+      0.70040000000000002	238.73249999999999
+      1.351	795.77499999999998
+      1.6240000000000001	3183.0999999999999
+      1.77	7957.75
+      2	31831
+      2.1299999999999999	79577.5
+      2.25	159155
+      2.46	318310
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;416 Stainless Steel&quot;
+    &lt;Mu_x&gt; = 440
+    &lt;Mu_y&gt; = 440
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 12
+      0	0
+      0.20039999999999999	318.31
+      0.42559999999999998	477.46499999999997
+      0.76100000000000001	795.77499999999998
+      1.097	1591.55
+      1.2330000000000001	2387.3249999999998
+      1.335	3978.875
+      1.46	7957.75
+      1.5900000000000001	15915.5
+      1.6899999999999999	31831
+      1.724232	44456.279999999999
+      1.74	55704.25
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;430 Stainless Steel&quot;
+    &lt;Mu_x&gt; = 409
+    &lt;Mu_y&gt; = 409
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 10
+      0	0
+      0.20039999999999999	318.31
+      0.6008	636.62
+      1.1020000000000001	1591.55
+      1.3859999999999999	4774.6499999999996
+      1.4650000000000001	7957.75
+      1.667548	32902.232515999996
+      1.789509	92585.397305000006
+      1.878209	160685.354903
+      2.0800000000000001	318310
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;455 Stainless Steel&quot;
+    &lt;Mu_x&gt; = 470
+    &lt;Mu_y&gt; = 470
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.6699999999999999
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 26
+      0	0
+      0.067337999999999995	342.70800000000003
+      0.10261000000000001	514.03099999999995
+      0.18909000000000001	713.09400000000005
+      0.29154000000000002	854.58199999999999
+      0.40999999999999998	995.75300000000004
+      0.55725000000000002	1107.72
+      0.73009999999999997	1247.9300000000001
+      0.86777000000000004	1417.4300000000001
+      0.97345000000000004	1616.1400000000001
+      1.0632999999999999	2273.6900000000001
+      1.1339999999999999	2931.6300000000001
+      1.224	4076.3600000000001
+      1.2724	4906.5900000000001
+      1.3500000000000001	6968.6800000000003
+      1.3761000000000001	8085.8699999999999
+      1.3991	9661.5
+      1.419	11438.5
+      1.4359999999999999	13874.299999999999
+      1.4462999999999999	15736.4
+      1.4533	17169.599999999999
+      1.464	19777.400000000001
+      1.478	22986.700000000001
+      1.4887999999999999	25795
+      1.4959	27715.200000000001
+      1.4995000000000001	28604.099999999999
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Carpenter Silicon Core Iron &quot;A&quot;, 1066C Anneal&quot;
+    &lt;Mu_x&gt; = 7000
+    &lt;Mu_y&gt; = 7000
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 4
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 35
+      0	0
+      0.076137999999999997	27.383403999999999
+      0.14288999999999999	31.395700000000001
+      0.21798000000000001	36.490250000000003
+      0.30552000000000001	42.403651000000004
+      0.39304	48.938552999999999
+      0.48466999999999999	55.704230000000003
+      0.58045000000000002	63.402555
+      0.68454999999999999	72.654231999999993
+      0.77612999999999999	81.009866000000002
+      0.85528000000000004	90.965007999999997
+      0.91776999999999997	100.076628
+      0.97614000000000001	110.875291
+      1.0510999999999999	124.506912
+      1.1262000000000001	144.71163200000001
+      1.1930000000000001	168.210859
+      1.2515000000000001	195.55367899999999
+      1.3058000000000001	225.79311799999999
+      1.3476999999999999	260.75150100000002
+      1.3937999999999999	309.50861800000001
+      1.4316	367.41714400000001
+      1.4694	436.172079
+      1.4990000000000001	525.02828399999999
+      1.5244	636.38899800000002
+      1.5414000000000001	745.35442899999998
+      1.5626	897.31556899999998
+      1.5839000000000001	1095.1451629999999
+      1.6094999999999999	1402.632513
+      1.6267	1771.9515590000001
+      1.6479999999999999	2223.0762450000002
+      1.6652	2713.5122019999999
+      1.6822999999999999	3335.0122550000001
+      1.7036	4042.6151319999999
+      1.7205999999999999	4767.5658979999998
+      1.7377	5779.3934479999998
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;M-15 Steel&quot;
+    &lt;Mu_x&gt; = 1
+    &lt;Mu_y&gt; = 1
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.8999999999999999
+    &lt;d_lam&gt; = 0.63500000000000001
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 0.97999999999999998
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 47
+      0	0
+      0.050000000000000003	15.120714
+      0.10000000000000001	22.718292000000002
+      0.14999999999999999	27.842732999999999
+      0.20000000000000001	31.871434000000001
+      0.25	35.365043999999997
+      0.29999999999999999	38.600588000000002
+      0.34999999999999998	41.736201999999999
+      0.40000000000000002	44.873978999999999
+      0.45000000000000001	48.087806999999998
+      0.5	51.437235999999999
+      0.55000000000000004	54.975220999999998
+      0.59999999999999998	58.752992999999996
+      0.65000000000000002	62.823644000000002
+      0.69999999999999996	67.245284999999996
+      0.75	72.084406000000001
+      0.80000000000000004	77.420100000000005
+      0.84999999999999998	83.350020999999998
+      0.90000000000000002	89.999611999999999
+      0.94999999999999996	97.537352999999996
+      1	106.20140600000001
+      1.05	116.34846400000001
+      1.1000000000000001	128.54732899999999
+      1.1499999999999999	143.76543100000001
+      1.2	163.75416899999999
+      1.25	191.86815799999999
+      1.3	234.833507
+      1.3500000000000001	306.50976900000001
+      1.3999999999999999	435.255202
+      1.45	674.911968
+      1.5	1108.3255690000001
+      1.55	1813.085468
+      1.6000000000000001	2801.2174209999998
+      1.6499999999999999	4053.6531169999998
+      1.7	5591.10689
+      1.75	7448.318413
+      1.8	9708.81567
+      1.8500000000000001	12486.931615
+      1.8999999999999999	16041.483644
+      1.95	21249.420623999998
+      2	31313.495878000002
+      2.0499999999999998	53589.446877000002
+      2.1000000000000001	88477.484601000004
+      2.1499999999999999	124329.41054
+      2.2000000000000002	159968.5693
+      2.25	197751.604272
+      2.2999999999999998	234024.75134700001
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;M-19 Steel&quot;
+    &lt;Mu_x&gt; = 4416
+    &lt;Mu_y&gt; = 4416
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.8999999999999999
+    &lt;d_lam&gt; = 0.63500000000000001
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 0.97999999999999998
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 47
+      0	0
+      0.050
+----
+filesize (130556) is larger than FileDrop limit (32768)...
+additional content has been omitted</pre>
+</div>
 <div title="journal" modifier="RobinDeits" created="201110310420" changecount="1">
 <pre></pre>
+</div>
+<div title="parallel_vs_coil.fig" modifier="YourName" created="201111142131" modified="201111142132" changecount="4">
+<pre>!link
+[[parallel_vs_coil.fig|../Magnetics_testing/Comparing_Axial_Planar/parallel_vs_coil.fig]]</pre>
 </div>
 <div title="planar.fem" modifier="RobinDeits" created="201111100532" modified="201111100532" changecount="2">
 <pre>!Link
 [[planar.fem|../Magnetics_testing/Comparing_Axial_Planar/planar.fem]]
 !Content
 &lt;&lt;tiddler &quot;../Magnetics_testing/Comparing_Axial_Planar/planar.fem&quot;&gt;&gt;</pre>
+</div>
+<div title="planar_basic2.fem" modifier="YourName" created="201111142127" changecount="1">
+<pre>/%
+!link
+[[planar_basic2.fem|file:////Users/robindeits/Documents/Battelle/Work_Projects/MR_Robot/Magnetics_testing/Comparing_Axial_Planar/planar_basic2.fem]]
+!end
+%/[Format]      =  4.0
+[Frequency]   =  0
+[Precision]   =  1e-008
+[MinAngle]    =  30
+[Depth]       =  1000
+[LengthUnits] =  meters
+[ProblemType] =  planar
+[Coordinates] =  cartesian
+[ACSolver]    =  0
+[Comment]     =  &quot;Add comments here.&quot;
+[PointProps]   = 0
+[BdryProps]   = 0
+[BlockProps]  = 130
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Air&quot;
+    &lt;Mu_x&gt; = 1
+    &lt;Mu_y&gt; = 1
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;LORD MRF 132-DG - mu=6&quot;
+    &lt;Mu_x&gt; = 6
+    &lt;Mu_y&gt; = 6
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 19
+      0	0
+      0.10315186246418299	12098.2986767486
+      0.16045845272206299	19659.7353497164
+      0.229226361031519	30245.7466918715
+      0.30945558739255002	43856.3327032136
+      0.37249283667621802	57466.918714555803
+      0.424068767908309	66540.642722117205
+      0.48137535816618898	80151.2287334594
+      0.555873925501433	95274.102079395103
+      0.60744985673352403	116446.124763705
+      0.68194842406876799	139130.43478260899
+      0.722063037249284	154253.30812854401
+      0.78510028653295105	178449.905482042
+      0.83094555873925502	198109.64083175801
+      0.87679083094555899	222306.238185255
+      0.916905444126075	243478.26086956501
+      0.95128939828080195	263137.99621928198
+      0.97421203438395398	279773.156899811
+      0.99713467048710602	290359.16824196599
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Alnico 5&quot;
+    &lt;Mu_x&gt; = 1.5
+    &lt;Mu_y&gt; = 1.5
+    &lt;H_c&gt; = 50963
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 2.25
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 26
+      0	0
+      0.12561	253.85213400000001
+      0.30829000000000001	707.44372199999998
+      0.48333999999999999	1452.2888559999999
+      0.61734	2162.915677
+      0.75499000000000005	3024.739693
+      0.84413000000000005	3845.9792000000002
+      0.92927999999999999	5110.4652230000002
+      0.98077000000000003	6495.9090020000003
+      1.02467	8023.0006810000004
+      1.0464	9234.1697980000008
+      1.0714999999999999	11043.761501000001
+      1.0929	12850.170104999999
+      1.1068	14650.212512
+      1.1242000000000001	16900.663407
+      1.1378999999999999	19147.135429000002
+      1.1516999999999999	21245.593353
+      1.1652	23790.480893
+      1.175	26182.579688000002
+      1.1915	30071.530722
+      1.2045999999999999	33361.263396000002
+      1.2177	36650.996070000001
+      1.2273000000000001	39490.320254999999
+      1.2397	43971.486832000002
+      1.2487999999999999	47704.784332000003
+      1.2544	50988.028258999999
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Alnico 6&quot;
+    &lt;Mu_x&gt; = 3.2999999999999998
+    &lt;Mu_y&gt; = 3.2999999999999998
+    &lt;H_c&gt; = 59907
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 2.25
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 26
+      0	0
+      0.10402	1131.5899999999999
+      0.18934000000000001	2098.46
+      0.26712000000000002	3207.77
+      0.33743000000000001	4310.71
+      0.40393000000000001	5560.0799999999999
+      0.47026000000000001	7106.2700000000004
+      0.52539000000000002	8643.7000000000007
+      0.57662999999999998	10475.6
+      0.63507999999999998	12760.200000000001
+      0.69674999999999998	15942.6
+      0.74002000000000001	18661.700000000001
+      0.78312000000000004	21679.299999999999
+      0.81535999999999997	24090.5
+      0.84031	26198.5
+      0.87238000000000004	28908.099999999999
+      0.90412000000000003	32213.799999999999
+      0.92864999999999998	35065.800000000003
+      0.95318000000000003	37917.900000000001
+      0.97397999999999996	40767.5
+      0.99451999999999996	44062.800000000003
+      1.0149999999999999	47507.800000000003
+      1.0354000000000001	51102.300000000003
+      1.0487	53944.800000000003
+      1.0622	56489.599999999999
+      1.0751999999999999	59928.199999999997
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Alnico 8&quot;
+    &lt;Mu_x&gt; = 6.6779999999999999
+    &lt;Mu_y&gt; = 6.6779999999999999
+    &lt;H_c&gt; = 109300
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 2.25
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 10
+      0	0
+      0.11536	8340
+      0.23438000000000001	18512
+      0.30429	24866
+      0.35666999999999999	29808
+      0.44341000000000003	39967
+      0.54315999999999998	54772
+      0.66569	77603
+      0.74668000000000001	95215
+      0.80359000000000003	109301
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 32 MGOe&quot;
+    &lt;Mu_x&gt; = 1.0449999999999999
+    &lt;Mu_y&gt; = 1.0449999999999999
+    &lt;H_c&gt; = 883310
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.69399999999999995
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 37 MGOe&quot;
+    &lt;Mu_x&gt; = 1.048
+    &lt;Mu_y&gt; = 1.048
+    &lt;H_c&gt; = 950000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.66700000000000004
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 40 MGOe&quot;
+    &lt;Mu_x&gt; = 1.0489999999999999
+    &lt;Mu_y&gt; = 1.0489999999999999
+    &lt;H_c&gt; = 979000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.66700000000000004
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 52 MGOe&quot;
+    &lt;Mu_x&gt; = 1.05
+    &lt;Mu_y&gt; = 1.05
+    &lt;H_c&gt; = 891300
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.66700000000000004
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 6
+      0	0
+      0.42799999999999999	95490
+      0.53300000000000003	175100
+      0.63800000000000001	254600
+      0.84799999999999998	413800
+      1.478	891300
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;NdFeB 10 MGOe (Bonded)&quot;
+    &lt;Mu_x&gt; = 1.2230000000000001
+    &lt;Mu_y&gt; = 1.2230000000000001
+    &lt;H_c&gt; = 445634
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@20C&quot;
+    &lt;Mu_x&gt; = 1.02782
+    &lt;Mu_y&gt; = 1.02782
+    &lt;H_c&gt; = 862360
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.625
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@60C&quot;
+    &lt;Mu_x&gt; = 1.04816
+    &lt;Mu_y&gt; = 1.04816
+    &lt;H_c&gt; = 810310
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.625
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@100C&quot;
+    &lt;Mu_x&gt; = 1.07653
+    &lt;Mu_y&gt; = 1.07653
+    &lt;H_c&gt; = 761621
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.625
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@140C&quot;
+    &lt;Mu_x&gt; = 1.08829
+    &lt;Mu_y&gt; = 1.08829
+    &lt;H_c&gt; = 705155
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;N30EH@180C&quot;
+    &lt;Mu_x&gt; = 1.1462600000000001
+    &lt;Mu_y&gt; = 1.1462600000000001
+    &lt;H_c&gt; = 638713
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0.625
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Ceramic 5&quot;
+    &lt;Mu_x&gt; = 1.8859999999999999
+    &lt;Mu_y&gt; = 1.8859999999999999
+    &lt;H_c&gt; = 191262
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 11
+      0	0
+      0.11225	9979.6124409999993
+      0.119417	10822.945775
+      0.15196999999999999	21699.612441000001
+      0.177037	36726.279108000002
+      0.23735000000000001	78449.612441000005
+      0.259793	94301.612441000005
+      0.31205699999999997	131847.945775
+      0.33257700000000001	146865.612441
+      0.354493	162718.27910799999
+      0.39151000000000002	191082.325775
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Ceramic 8&quot;
+    &lt;Mu_x&gt; = 1.4384600000000001
+    &lt;Mu_y&gt; = 1.4384600000000001
+    &lt;H_c&gt; = 233568
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 9
+      0	0
+      0.040029000000000002	1488.09925
+      0.069106000000000001	5665.9179999999997
+      0.087951000000000001	15231.1335
+      0.11024	30247.407749999998
+      0.15995000000000001	63009.464500000002
+      0.24912000000000001	128493.78925
+      0.32113999999999998	180339.326275
+      0.39145000000000002	233567.92025
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;SmCo 20 MGOe&quot;
+    &lt;Mu_x&gt; = 1.0345
+    &lt;Mu_y&gt; = 1.0345
+    &lt;H_c&gt; = 693000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.1759999999999999
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;SmCo 24 MGOe&quot;
+    &lt;Mu_x&gt; = 1.1100000000000001
+    &lt;Mu_y&gt; = 1.1100000000000001
+    &lt;H_c&gt; = 724000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.1759999999999999
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;SmCo 27 MGOe&quot;
+    &lt;Mu_x&gt; = 1.103
+    &lt;Mu_y&gt; = 1.103
+    &lt;H_c&gt; = 772000
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.1759999999999999
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 0
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;US Steel Type 2-S 0.018 inch thickness&quot;
+    &lt;Mu_x&gt; = 9400
+    &lt;Mu_y&gt; = 9400
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 6.25
+    &lt;d_lam&gt; = 0.4572
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 0.97999999999999998
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 57
+      0	0
+      0.0044450000000000002	9.5103069999999992
+      0.0058190000000000004	11.21247
+      0.0071929999999999997	13.219414
+      0.0085679999999999992	15.585253
+      0.012898	18.371262000000002
+      0.017228	21.656220999999999
+      0.027470000000000001	25.5213
+      0.046579000000000002	30.061992
+      0.092288999999999996	35.364241
+      0.22076000000000001	41.430433999999998
+      0.4113	48.386302999999998
+      0.60185	56.510370000000002
+      0.77170000000000005	66.066035999999997
+      0.91495000000000004	77.340575999999999
+      1.0464	90.591025999999999
+      1.1600999999999999	106.21208900000001
+      1.2619	124.594492
+      1.3431	146.31119100000001
+      1.3947000000000001	172.06246999999999
+      1.4286000000000001	202.52473699999999
+      1.4507000000000001	238.525598
+      1.4668000000000001	281.01202599999999
+      1.4830000000000001	331.05831499999999
+      1.4932000000000001	390.144609
+      1.5064	459.69534399999998
+      1.5166999999999999	541.73178900000005
+      1.5268999999999999	638.41049399999997
+      1.5371999999999999	752.33364300000005
+      1.5474000000000001	886.57292700000005
+      1.5576000000000001	1044.772997
+      1.5679000000000001	1231.22308
+      1.5840000000000001	1450.5386699999999
+      1.5972	1709.1655450000001
+      1.6104000000000001	2013.867792
+      1.6266	2372.5235849999999
+      1.6427	2795.1596880000002
+      1.6589	3292.9965269999998
+      1.6779999999999999	3878.9256599999999
+      1.6971000000000001	4569.1013169999997
+      1.7161999999999999	5382.0650580000001
+      1.7353000000000001	6339.7006929999998
+      1.7604	7465.5631620000004
+      1.7854000000000001	8791.7222000000002
+      1.8104	10352.236975
+      1.8384	12188.885675
+      1.8723000000000001	14347.823249999999
+      1.9060999999999999	16887.93705
+      1.9459	19872.0933
+      1.9886999999999999	23380.665274999999
+      2.0344000000000002	27504.371325
+      2.0741999999999998	32364.965025000001
+      2.1080999999999999	38095.340799999998
+      2.1389999999999998	44847.491674999997
+      2.1610999999999998	52819.565625000003
+      2.1772	62227.217675
+      2.1903999999999999	73321.116949999996
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;US Steel Type 2-S 0.024 inch thickness&quot;
+    &lt;Mu_x&gt; = 7400
+    &lt;Mu_y&gt; = 7400
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 6.25
+    &lt;d_lam&gt; = 0.60960000000000003
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 0.97999999999999998
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 66
+      0	0
+      0.0046779999999999999	9.1307220000000004
+      0.0064009999999999996	10.474786
+      0.008123	12.016997999999999
+      0.0098449999999999996	13.786006
+      0.014524	15.816824
+      0.019202	18.147649000000001
+      0.023879999999999998	20.822248999999999
+      0.031514	23.893940000000001
+      0.048016000000000003	27.429568
+      0.067473000000000005	31.492000000000001
+      0.10170999999999999	36.179115000000003
+      0.15959000000000001	41.607095999999999
+      0.26477000000000001	47.948627000000002
+      0.39655000000000001	55.320686000000002
+      0.53718999999999995	63.850599000000003
+      0.67193000000000003	73.677623999999994
+      0.79779999999999995	84.980812
+      0.90297000000000005	97.936029000000005
+      1.0052000000000001	112.84885300000001
+      1.0955999999999999	129.96597299999999
+      1.1800999999999999	149.637531
+      1.2557	172.22162599999999
+      1.3165	198.08431300000001
+      1.3654999999999999	227.718974
+      1.3997999999999999	261.61103100000003
+      1.4252	300.436893
+      1.4446000000000001	344.928674
+      1.4611000000000001	395.961724
+      1.4717	454.42731400000002
+      1.4852000000000001	521.59868100000006
+      1.4987999999999999	598.69336299999998
+      1.5094000000000001	687.10396600000001
+      1.52	788.557321
+      1.5276000000000001	904.87575200000003
+      1.5382	1038.486375
+      1.5488	1191.832218
+      1.5593999999999999	1367.8576479999999
+      1.5729	1569.9844969999999
+      1.5834999999999999	1801.7937549999999
+      1.5941000000000001	2067.9009150000002
+      1.6047	2373.239783
+      1.6182000000000001	2724.0174019999999
+      1.6288	3126.281665
+      1.6424000000000001	3588.30863
+      1.6589	4119.2497100000001
+      1.6754	4728.7337829999997
+      1.7083999999999999	6231.5548699999999
+      1.7307999999999999	7155.3700669999998
+      1.7532000000000001	8216.3768749999999
+      1.7756000000000001	9433.9126250000008
+      1.8009999999999999	10834.476624999999
+      1.8292999999999999	12443.533675000001
+      1.8575999999999999	14292.119000000001
+      1.8889	16417.634024999999
+      1.9232	18861.459050000001
+      1.9574	21668.953249999999
+      1.9916	24894.229325
+      2.0287999999999999	28603.336599999999
+      2.0659999999999998	32864.711725000001
+      2.0973000000000002	37751.565999999999
+      2.1255999999999999	43359.392424999998
+      2.1480000000000001	49787.662875000002
+      2.1675	57161.314025
+      2.181	65610.852975000002
+      2.1945999999999999	75308.167125000007
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Pure Iron&quot;
+    &lt;Mu_x&gt; = 14872
+    &lt;Mu_y&gt; = 14872
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 10.44
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 21
+      0	0
+      0.22706499999999999	13.898400000000001
+      0.45412999999999998	27.796700000000001
+      0.68119499999999999	42.397399999999998
+      0.90825999999999996	61.415700000000001
+      1.13533	82.382400000000004
+      1.36239	144.66900000000001
+      1.58935	897.75999999999999
+      1.81236	4581.7399999999998
+      2.01004	17736.200000000001
+      2.1331600000000002	41339.300000000003
+      2.1999900000000001	68321.800000000003
+      2.2547899999999998	95685.5
+      2.2999299999999998	123355
+      2.3425099999999999	151083
+      2.3787600000000002	178954
+      2.4150100000000001	206825
+      2.45126	234696
+      2.4874999999999998	262568
+      2.5237500000000002	290439
+      2.5600000000000001	318310
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1006 Steel&quot;
+    &lt;Mu_x&gt; = 1404
+    &lt;Mu_y&gt; = 1404
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 38
+      0	0
+      0.38833000000000001	79.577472
+      0.48252400000000001	100.182101
+      0.59529299999999996	126.121793
+      0.726634	158.77793
+      0.87345300000000003	199.88957099999999
+      1.0281009999999999	251.646061
+      1.178099	316.80362000000002
+      1.308718	398.83212800000001
+      1.408663	502.09990099999999
+      1.4756450000000001	632.10632499999997
+      1.5169570000000001	795.77471500000001
+      1.544297	1001.821011
+      1.567545	1261.2179289999999
+      1.592042	1587.779301
+      1.619381	1998.89571
+      1.649135	2516.4606050000002
+      1.6799839999999999	3168.036204
+      1.7105109999999999	3988.3212819999999
+      1.7400770000000001	5020.9990129999996
+      1.769441	6321.0632500000002
+      1.8005549999999999	7957.747155
+      1.8356250000000001	10018.210114
+      1.8761209999999999	12612.179292999999
+      1.9221870000000001	15877.793009999999
+      1.972386	19988.957103000001
+      2.0236740000000002	25164.606051999999
+      2.0719500000000002	31680.362036999999
+      2.1135380000000001	39883.212823000002
+      2.1470829999999999	50209.990126999997
+      2.1744270000000001	63210.632496999999
+      2.1996039999999999	79577.471546000001
+      2.2269369999999999	100182.101136
+      2.2598500000000001	126121.79292599999
+      2.3009309999999998	158777.930096
+      2.3525969999999998	199889.57102999999
+      2.4176359999999999	251646.06052200001
+      2.4995159999999998	316803.62037000002
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1010 Steel&quot;
+    &lt;Mu_x&gt; = 902.60000000000002
+    &lt;Mu_y&gt; = 902.60000000000002
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 38
+      0	0
+      0.21186199999999999	79.577472
+      0.26566499999999998	100.182101
+      0.33237699999999998	126.121793
+      0.414377	158.77793
+      0.51381100000000002	199.88957099999999
+      0.63189899999999999	251.646061
+      0.76778400000000002	316.80362000000002
+      0.917018	398.83212800000001
+      1.0703530000000001	502.09990099999999
+      1.2142550000000001	632.10632499999997
+      1.3346370000000001	795.77471500000001
+      1.4229810000000001	1001.821011
+      1.480634	1261.2179289999999
+      1.5172140000000001	1587.779301
+      1.5445150000000001	1998.89571
+      1.571296	2516.4606050000002
+      1.6020490000000001	3168.036204
+      1.638404	3988.3212819999999
+      1.68049	5020.9990129999996
+      1.727311	6321.0632500000002
+      1.776659	7957.747155
+      1.8254010000000001	10018.210114
+      1.870557	12612.179292999999
+      1.910809	15877.793009999999
+      1.947222	19988.957103000001
+      1.9823280000000001	25164.606051999999
+      2.0182519999999999	31680.362036999999
+      2.0553979999999998	39883.212823000002
+      2.0925449999999999	50209.990126999997
+      2.1280950000000001	63210.632496999999
+      2.1616119999999999	79577.471546000001
+      2.1946439999999998	100182.101136
+      2.2303389999999998	126121.79292599999
+      2.272386	158777.930096
+      2.3242820000000002	199889.57102999999
+      2.3893559999999998	251646.06052200001
+      2.471238	316803.62037000002
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1018 Steel&quot;
+    &lt;Mu_x&gt; = 529
+    &lt;Mu_y&gt; = 529
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 13
+      0	0
+      0.25030000000000002	238.73249999999999
+      0.92500000000000004	795.77499999999998
+      1.25	1591.55
+      1.3899999999999999	2387.3249999999998
+      1.5249999999999999	3978.875
+      1.71	7957.75
+      1.8700000000000001	15915.5
+      1.9550000000000001	23873.25
+      2.02	39788.75
+      2.1099999999999999	79577.5
+      2.2250000000000001	159155
+      2.4300000000000002	318310
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1020 Steel&quot;
+    &lt;Mu_x&gt; = 760
+    &lt;Mu_y&gt; = 760
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 38
+      0	0
+      0.16625200000000001	79.577472
+      0.20872499999999999	100.182101
+      0.26163500000000001	126.121793
+      0.32714599999999999	158.77793
+      0.407495	199.88957099999999
+      0.50460400000000005	251.646061
+      0.61936599999999997	316.80362000000002
+      0.750502	398.83212800000001
+      0.89319499999999996	502.09990099999999
+      1.0382579999999999	632.10632499999997
+      1.173276	795.77471500000001
+      1.2867310000000001	1001.821011
+      1.3735329999999999	1261.2179289999999
+      1.4376580000000001	1587.779301
+      1.4891890000000001	1998.89571
+      1.5383439999999999	2516.4606050000002
+      1.591321	3168.036204
+      1.6497230000000001	3988.3212819999999
+      1.711927	5020.9990129999996
+      1.7747120000000001	6321.0632500000002
+      1.8349759999999999	7957.747155
+      1.8914420000000001	10018.210114
+      1.945262	12612.179292999999
+      1.998705	15877.793009999999
+      2.0528520000000001	19988.957103000001
+      2.1061839999999998	25164.606051999999
+      2.1551490000000002	31680.362036999999
+      2.1963750000000002	39883.212823000002
+      2.2290079999999999	50209.990126999997
+      2.2554500000000002	63210.632496999999
+      2.2800530000000001	79577.471546000001
+      2.3071359999999999	100182.101136
+      2.3399749999999999	126121.79292599999
+      2.3810440000000002	158777.930096
+      2.4327079999999999	199889.57102999999
+      2.4977480000000001	251646.06052200001
+      2.5796269999999999	316803.62037000002
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;1117 Steel&quot;
+    &lt;Mu_x&gt; = 1777
+    &lt;Mu_y&gt; = 1777
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 5.7999999999999998
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 9
+      0	0
+      0.70040000000000002	238.73249999999999
+      1.351	795.77499999999998
+      1.6240000000000001	3183.0999999999999
+      1.77	7957.75
+      2	31831
+      2.1299999999999999	79577.5
+      2.25	159155
+      2.46	318310
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;416 Stainless Steel&quot;
+    &lt;Mu_x&gt; = 440
+    &lt;Mu_y&gt; = 440
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 12
+      0	0
+      0.20039999999999999	318.31
+      0.42559999999999998	477.46499999999997
+      0.76100000000000001	795.77499999999998
+      1.097	1591.55
+      1.2330000000000001	2387.3249999999998
+      1.335	3978.875
+      1.46	7957.75
+      1.5900000000000001	15915.5
+      1.6899999999999999	31831
+      1.724232	44456.279999999999
+      1.74	55704.25
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;430 Stainless Steel&quot;
+    &lt;Mu_x&gt; = 409
+    &lt;Mu_y&gt; = 409
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 0
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 10
+      0	0
+      0.20039999999999999	318.31
+      0.6008	636.62
+      1.1020000000000001	1591.55
+      1.3859999999999999	4774.6499999999996
+      1.4650000000000001	7957.75
+      1.667548	32902.232515999996
+      1.789509	92585.397305000006
+      1.878209	160685.354903
+      2.0800000000000001	318310
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;455 Stainless Steel&quot;
+    &lt;Mu_x&gt; = 470
+    &lt;Mu_y&gt; = 470
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.6699999999999999
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 20
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 26
+      0	0
+      0.067337999999999995	342.70800000000003
+      0.10261000000000001	514.03099999999995
+      0.18909000000000001	713.09400000000005
+      0.29154000000000002	854.58199999999999
+      0.40999999999999998	995.75300000000004
+      0.55725000000000002	1107.72
+      0.73009999999999997	1247.9300000000001
+      0.86777000000000004	1417.4300000000001
+      0.97345000000000004	1616.1400000000001
+      1.0632999999999999	2273.6900000000001
+      1.1339999999999999	2931.6300000000001
+      1.224	4076.3600000000001
+      1.2724	4906.5900000000001
+      1.3500000000000001	6968.6800000000003
+      1.3761000000000001	8085.8699999999999
+      1.3991	9661.5
+      1.419	11438.5
+      1.4359999999999999	13874.299999999999
+      1.4462999999999999	15736.4
+      1.4533	17169.599999999999
+      1.464	19777.400000000001
+      1.478	22986.700000000001
+      1.4887999999999999	25795
+      1.4959	27715.200000000001
+      1.4995000000000001	28604.099999999999
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;Carpenter Silicon Core Iron &quot;A&quot;, 1066C Anneal&quot;
+    &lt;Mu_x&gt; = 7000
+    &lt;Mu_y&gt; = 7000
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 4
+    &lt;d_lam&gt; = 0
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 1
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 35
+      0	0
+      0.076137999999999997	27.383403999999999
+      0.14288999999999999	31.395700000000001
+      0.21798000000000001	36.490250000000003
+      0.30552000000000001	42.403651000000004
+      0.39304	48.938552999999999
+      0.48466999999999999	55.704230000000003
+      0.58045000000000002	63.402555
+      0.68454999999999999	72.654231999999993
+      0.77612999999999999	81.009866000000002
+      0.85528000000000004	90.965007999999997
+      0.91776999999999997	100.076628
+      0.97614000000000001	110.875291
+      1.0510999999999999	124.506912
+      1.1262000000000001	144.71163200000001
+      1.1930000000000001	168.210859
+      1.2515000000000001	195.55367899999999
+      1.3058000000000001	225.79311799999999
+      1.3476999999999999	260.75150100000002
+      1.3937999999999999	309.50861800000001
+      1.4316	367.41714400000001
+      1.4694	436.172079
+      1.4990000000000001	525.02828399999999
+      1.5244	636.38899800000002
+      1.5414000000000001	745.35442899999998
+      1.5626	897.31556899999998
+      1.5839000000000001	1095.1451629999999
+      1.6094999999999999	1402.632513
+      1.6267	1771.9515590000001
+      1.6479999999999999	2223.0762450000002
+      1.6652	2713.5122019999999
+      1.6822999999999999	3335.0122550000001
+      1.7036	4042.6151319999999
+      1.7205999999999999	4767.5658979999998
+      1.7377	5779.3934479999998
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;M-15 Steel&quot;
+    &lt;Mu_x&gt; = 1
+    &lt;Mu_y&gt; = 1
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.8999999999999999
+    &lt;d_lam&gt; = 0.63500000000000001
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 0.97999999999999998
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 47
+      0	0
+      0.050000000000000003	15.120714
+      0.10000000000000001	22.718292000000002
+      0.14999999999999999	27.842732999999999
+      0.20000000000000001	31.871434000000001
+      0.25	35.365043999999997
+      0.29999999999999999	38.600588000000002
+      0.34999999999999998	41.736201999999999
+      0.40000000000000002	44.873978999999999
+      0.45000000000000001	48.087806999999998
+      0.5	51.437235999999999
+      0.55000000000000004	54.975220999999998
+      0.59999999999999998	58.752992999999996
+      0.65000000000000002	62.823644000000002
+      0.69999999999999996	67.245284999999996
+      0.75	72.084406000000001
+      0.80000000000000004	77.420100000000005
+      0.84999999999999998	83.350020999999998
+      0.90000000000000002	89.999611999999999
+      0.94999999999999996	97.537352999999996
+      1	106.20140600000001
+      1.05	116.34846400000001
+      1.1000000000000001	128.54732899999999
+      1.1499999999999999	143.76543100000001
+      1.2	163.75416899999999
+      1.25	191.86815799999999
+      1.3	234.833507
+      1.3500000000000001	306.50976900000001
+      1.3999999999999999	435.255202
+      1.45	674.911968
+      1.5	1108.3255690000001
+      1.55	1813.085468
+      1.6000000000000001	2801.2174209999998
+      1.6499999999999999	4053.6531169999998
+      1.7	5591.10689
+      1.75	7448.318413
+      1.8	9708.81567
+      1.8500000000000001	12486.931615
+      1.8999999999999999	16041.483644
+      1.95	21249.420623999998
+      2	31313.495878000002
+      2.0499999999999998	53589.446877000002
+      2.1000000000000001	88477.484601000004
+      2.1499999999999999	124329.41054
+      2.2000000000000002	159968.5693
+      2.25	197751.604272
+      2.2999999999999998	234024.75134700001
+  &lt;EndBlock&gt;
+  &lt;BeginBlock&gt;
+    &lt;BlockName&gt; = &quot;M-19 Steel&quot;
+    &lt;Mu_x&gt; = 4416
+    &lt;Mu_y&gt; = 4416
+    &lt;H_c&gt; = 0
+    &lt;H_cAngle&gt; = 0
+    &lt;J_re&gt; = 0
+    &lt;J_im&gt; = 0
+    &lt;Sigma&gt; = 1.8999999999999999
+    &lt;d_lam&gt; = 0.63500000000000001
+    &lt;Phi_h&gt; = 0
+    &lt;Phi_hx&gt; = 0
+    &lt;Phi_hy&gt; = 0
+    &lt;LamType&gt; = 0
+    &lt;LamFill&gt; = 0.97999999999999998
+    &lt;NStrands&gt; = 0
+    &lt;WireD&gt; = 0
+    &lt;BHPoints&gt; = 47
+      0	0
+      0.050000000000000003	15.120714
+      0.10000000000000001	22.718292000000002
+      0.14999999999999999	27.842732999999999
+      0.20000000000000001	31.871434000000001
+      0.25	35.365043999999997
+      0.29999999999999999	38.600588000000
+----
+filesize (130510) is larger than FileDrop limit (32768)...
+additional content has been omitted</pre>
 </div>
 <div title="systemConfig" modifier="RobinDeits" created="201009151231" modified="201012042301" taggly.excerpts="descr" taggly.sortby="created" taggly.sortorder="desc" changecount="2">
 <pre></pre>
