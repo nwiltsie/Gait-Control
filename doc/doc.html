@@ -529,7 +529,7 @@ The planar model is just the axial model mirrored about its centerline, with the
 
 </pre>
 </div>
-<div title="2011-11-14 Comparing axial and planar" modifier="YourName" created="201111142114" modified="201111142134" tags="journal" changecount="11">
+<div title="2011-11-14 Comparing axial and planar" modifier="YourName" created="201111142114" modified="201111142147" tags="journal" changecount="14">
 <pre>I'm comparing the magnetic field produced by a current loop with the field produced by two parallel wires.
 
 !!!Planar setup (two parallel wires):
@@ -548,7 +548,19 @@ To check these equations, I created two new setups in FEMM:
 [[axial_basic2.fem]]
 [[planar_basic2.fem]]
 
-These files set D = 100m, I = 1A, R = 100m. I plotted the results from the equations against the results from the simulator: [[parallel_vs_coil.fig]]. The simulator results are slightly different; I'm not currently sure why that is. The results from my equation for the coil are exactly the same as those given by this calculator: http://www.netdenizen.com/emagnet/offaxis/iloopcalculator.htm</pre>
+These files set D = 100m, I = 1A, R = 100m. I plotted the results from the equations against the results from the simulator in MATLAB:
+{{{
+plot_simulations
+hold on
+plot(planar_basic_H(:,1)-100, planar_basic_H(:,2), 'r')
+plot(axial_basic_H(:,1), axial_basic_H(:,2), 'c')
+legend('Parallel', 'Coil', 'Parallel (sim)', 'Coil (sim')
+xlabel('x position (m)')
+ylabel('H (A/m)')
+}}}
+[[parallel_vs_coil.fig]] 
+
+The simulator results are slightly different; I'm not currently sure why that is. The results from my equation for the coil are exactly the same as those given by this calculator: http://www.netdenizen.com/emagnet/offaxis/iloopcalculator.htm</pre>
 </div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
