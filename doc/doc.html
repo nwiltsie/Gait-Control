@@ -562,6 +562,24 @@ ylabel('H (A/m)')
 
 The simulator results are slightly different; I'm not currently sure why that is. The results from my equation for the coil are exactly the same as those given by this calculator: http://www.netdenizen.com/emagnet/offaxis/iloopcalculator.htm</pre>
 </div>
+<div title="2011-11-21 Speccing the Helmsholtz coil" modifier="YourName" created="201111211828" tags="journal" changecount="1">
+<pre>I'm working on the math for the Helmholtz coil right now, and I think I at least have an answer we can start playing with. I think that the overall limiting consideration here is going to be the power dissipated due to the resistance of the coil (which will cause heat buildup etc.). If my math is correct, then the power dissipated by the coil should be:
+
+P = (4/5)^3 * (2 * pi * B^2 * R^3 * rho) / (mu^2 * n * A)
+
+where:
+B = desired magnetic field at the center of the coil
+R = radius of the coil
+rho = resistivity of the wire
+mu = permeability of free space
+n = number of turns in each coil
+A = cross-sectional area of the wire
+
+For a field of 0.3 Tesla, with R = 1.5 inches, rho = resistivity of copper, n = 1000, and I = 12.7 Amps, this gives a power dissipation of 800W. That's almost certainly going to overheat extremely quickly, but at least it isn't completely insane. Here's the calculation in wolframalpha: http://www.wolframalpha.com/input/?i=2+*+pi+*+%280.3+Tesla%29%5E2+*+%281.5+inches%29%5E3+*+%28resistivity+of+copper%29+*+%284%2F5%29%5E-3+%2F+%28%28vacuum+permeability%29%5E2+*+1000+*+%280.823mm%5E2%29%29
+
+Since the power formula goes as R^3, the best thing we can do is figure out just how small we can make these coils. For example, if we cut the radius down to 0.75 inches, we can bring the power down to 100 W: http://www.wolframalpha.com/input/?i=2+*+pi+*+%280.3+Tesla%29%5E2+*+%280.75+inches%29%5E3+*+%28resistivity+of+copper%29+*+%284%2F5%29%5E-3+%2F+%28%28vacuum+permeability%29%5E2+*+1000+*+%280.823mm%5E2%29%29
+Unfortunately, 1000 turns of 18 gauge wire will form a bundle about 4cm in diameter, which is pretty substantial. In fact, that bundle is so big that it significantly affects the minimum radius of the coil: in order to have even 1 inch of opening in the center of the coil, we must have a radius of about 4cm. </pre>
+</div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
 |Name:|CloseOnCancelPlugin|
