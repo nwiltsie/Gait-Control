@@ -580,6 +580,27 @@ For a field of 0.3 Tesla, with R = 1.5 inches, rho = resistivity of copper, n = 
 Since the power formula goes as R^3, the best thing we can do is figure out just how small we can make these coils. For example, if we cut the radius down to 0.75 inches, we can bring the power down to 100 W: http://www.wolframalpha.com/input/?i=2+*+pi+*+%280.3+Tesla%29%5E2+*+%280.75+inches%29%5E3+*+%28resistivity+of+copper%29+*+%284%2F5%29%5E-3+%2F+%28%28vacuum+permeability%29%5E2+*+1000+*+%280.823mm%5E2%29%29
 Unfortunately, 1000 turns of 18 gauge wire will form a bundle about 4cm in diameter, which is pretty substantial. In fact, that bundle is so big that it significantly affects the minimum radius of the coil: in order to have even 1 inch of opening in the center of the coil, we must have a radius of about 4cm. </pre>
 </div>
+<div title="2011-11-23 Comparing Helmholtz and Solenoid setups" modifier="YourName" created="201111232206" modified="201111232217" tags="journal" changecount="14">
+<pre>We'd like to know whether to use a solenoid or a Helmholtz coil to create our magnetic field. The relevant equations are:
+
+For a solenoid of radius R, length L, current I, number of turns n:
+\[
+B_x = \frac{\mu_0 I n}{2 L} \left(\cos{\theta_1} - \cos{\theta_2}\right)
+\]
+Where 
+$$\tan{\theta_1} = \frac{R}{\frac{L}{2} - x}$$
+$$\tan{\theta_2} = \frac{R}{-\left(\frac{L}{2} + x\right)}$$
+
+For a Helmholtz coil with radius R, current I, number of turns n, the field is:
+\[
+B_x = \frac{n R^2 I \mu_0}{2} \left(\frac{1}{\left(R^2 + \left(\frac{R}{2} + x\right)^2\right)^{3/2}} +
+\frac{1}{\left(R^2 + \left(\frac{R}{2} - x\right)^2\right)^{3/2}}\right)
+\]
+
+The result of this, assuming R = 1m for both and L = 1m, 2m, and 4m for the solenoid is shown in this figure:
+[img[results|../Magnetics_testing/EM_coil_calculations/solenoid_vs_helmholtz.png][../Magnetics_testing/EM_coil_calculations/solenoid_vs_helmholtz.png]]]
+The L = 1 solenoid gives the highest B field, while the L = 4 solenoid has the least variation along its axis. The Helmholtz seems to be the best combination of high field and consistency. </pre>
+</div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
 |Name:|CloseOnCancelPlugin|
