@@ -132,8 +132,8 @@ mi_clearselected;
 mi_addsegment(bound_bottom(1), bound_bottom(2), bound_top(1), bound_top(2));
 
 %% Fill the empty space with air
-mi_addblocklabel(0.001, 0);
-mi_selectlabel(0.001, 0);
+mi_addblocklabel(0.001, -coil_center_r_m);
+mi_selectlabel(0.001, -coil_center_r_m);
 
 blockname = 'Air';
 automesh = 1;
@@ -145,10 +145,37 @@ turns = 0;
 mi_setblockprop(blockname, automesh, meshsize, incircuit, magdir, group, turns);
 mi_clearselected;
 
+%% Add the MRF
+fluid_radius_m = 0.5 * 0.0254;
+fluid_thickness_m = 0.125 * 0.0254;
+
+MRF_1 = [fluid_radius_m, fluid_thickness_m / 2];
+MRF_2 = [0, fluid_thickness_m / 2];
+MRF_3 = [0, -fluid_thickness_m / 2];
+MRF_4 = [fluid_radius_m, -fluid_thickness_m / 2];
+
+mi_addnode(MRF_1(1), MRF_1(2));
+mi_addnode(MRF_2(1), MRF_2(2));
+mi_addnode(MRF_3(1), MRF_3(2));
+mi_addnode(MRF_4(1), MRF_4(2));
+mi_drawpolygon([MRF_1(1), MRF_1(2); MRF_2(1), MRF_2(2); MRF_3(1), MRF_3(2); MRF_4(1), MRF_4(2)]);
+
+mi_addblocklabel(fluid_radius_m / 2, 0);
+mi_selectlabel(fluid_radius_m /2, 0);
+blockname = 'LORD MRF 132-DG - mu=6';
+automesh = 1;
+meshsize = 0;
+incircuit = 0;
+magdir = 0;
+group = 3;
+turns = 0;
+mi_setblockprop(blockname, automesh, meshsize, incircuit, magdir, group, turns);
+mi_clearselected;
+
+
 %% Energize the coils
 mi_addblocklabel(top_coil_center(1), top_coil_center(2));
 mi_selectlabel(top_coil_center(1), top_coil_center(2));
-
 blockname = 'copper_coil';
 automesh = 1;
 meshsize = 0;

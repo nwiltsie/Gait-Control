@@ -631,8 +631,12 @@ Let \rho_1 be the desired internal radius of the coil, and let \rho_2 be the rad
 
 If we want an internal radius of 1.5\,in, then $$\rho_1 = 0.019\,m$$ and </pre>
 </div>
-<div title="2012-01-02 helmholtz coil simulation" modifier="YourName" created="201201022106" modified="201201022107" tags="journal" changecount="2">
-<pre>In running the helmholtz coil simulation, I realized that my previous parameters of d=0.0641 in and n = 600 would cause the coils to intersect each other. I reduced n to 400, which gives a total power of 678 W/coil. When constructed in FEMM, this gives [[../Magnetics_testing/Coil_Simulation/helmholtz_coil.ans|../Magnetics_testing/Coil_Simulation/helmholtz_coil.ans]], and the resulting magnetic field looks like [[../Magnetics_testing/Coil_Simulation/helmholtz_coil.pdf|../Magnetics_testing/Coil_Simulation/helmholtz_coil.pdf]]</pre>
+<div title="2012-01-02 helmholtz coil simulation" modifier="YourName" created="201201022106" modified="201201022112" tags="journal" changecount="4">
+<pre>In running the helmholtz coil simulation, I realized that my previous parameters of d=0.0641 in and n = 600 would cause the coils to intersect each other. I reduced n to 400, which gives a total power of 678 W/coil. When constructed in FEMM, this gives [[../Magnetics_testing/Coil_Simulation/helmholtz_coil.ans|../Magnetics_testing/Coil_Simulation/helmholtz_coil.ans]], and the resulting magnetic field looks like [[../Magnetics_testing/Coil_Simulation/helmholtz_coil.pdf|../Magnetics_testing/Coil_Simulation/helmholtz_coil.pdf]], which shows a very constant region of roughly 2.4T in the area between the coils. However, this will require 30A of current to generate.
+
+Above done at git commit 8f4daf479b248fd36fbe6573d62dbe6097227459
+
+Throughout this analysis, however, I've been neglecting the magnetic effects of the MRF. This is almost certainly a very significant mistake. I will now add the MRF to the simulation. </pre>
 </div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
