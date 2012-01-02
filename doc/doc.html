@@ -601,6 +601,36 @@ The result of this, assuming R = 1m for both and L = 1m, 2m, and 4m for the sole
 [img[results|../Magnetics_testing/EM_coil_calculations/solenoid_vs_helmholtz.png][../Magnetics_testing/EM_coil_calculations/solenoid_vs_helmholtz.png]]
 The L = 1 solenoid gives the highest B field, while the L = 4 solenoid has the least variation along its axis. The Helmholtz seems to be the best combination of high field and consistency. </pre>
 </div>
+<div title="2011-12-14 Helmholtz coil spec" modifier="YourName" created="201112141815" modified="201112141846" tags="journal" changecount="17">
+<pre>In order to design the electromagnet for our MR fluid tests, I have been speccing out a helmholtz coil capable of producing roughly 0.3T with a diameter of 1.5&quot; internally. I have created [[../Magnetics_testing/EM_coil_calculations/helmholtz_spec.xlsx|../Magnetics_testing/EM_coil_calculations/helmholtz_spec.xlsx]] to calculate the required power, voltage, and current from such a configuration. I have also written a Matlab program, helmholtz_power.m to do the same calculation, and used that to produce plots of total coil power and total copper volume as a function of wire diameter and number of turns [img[coil spec|fig/helmholtz_power.png][../Magnetics_testing/EM_coil_calculations/helmholtz_power.fig]]
+
+There seems to be a reasonable solution at roughly 0.06in diameter wire and 600 turns. I can achieve this with 14-gauge wire (diameter = 0.0641 in). Relevant calculations:
+
+Each wire has a diameter of 0.0641 in = 0.001628 m
+Let
+\begin{align}
+r \equiv&amp; \text{wire radius} = 8.14×10^{-4}\,m\\
+N \equiv&amp; \text{number of turns} = 600
+
+\end{align}
+
+Circle packing fraction is roughly 0.9 (http://mathworld.wolfram.com/CirclePacking.html), so the total area consumed by N turns of wire with radius r is 
+\[
+A = \frac{1}{.9} \times N \times \pi r^2 = 0.00138774\,m^2
+\]
+
+If we assume that the wires will be arranged in a circular bundle, then the radius of that circle should be:
+\[
+R = \sqrt{\frac{A}{\pi}} = 0.0210174\,m
+\]
+
+Let \rho_1 be the desired internal radius of the coil, and let \rho_2 be the radius to the center of the bundle of wires. Then 
+\[
+\rho_2 = \rho_1 + R
+\]
+
+If we want an internal radius of 1.5\,in, then $$\rho_1 = 0.019\,m$$ and </pre>
+</div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
 |Name:|CloseOnCancelPlugin|
@@ -4895,7 +4925,7 @@ merge(config.macros,{
 filesize (130556) is larger than FileDrop limit (32768)...
 additional content has been omitted</pre>
 </div>
-<div title="journal" modifier="RobinDeits" created="201110310420" changecount="1">
+<div title="journal" modifier="RobinDeits" created="201110310420" changecount="1" taggly.sortby="created" taggly.sortorder="desc">
 <pre></pre>
 </div>
 <div title="parallel_vs_coil.fig" modifier="YourName" created="201111142131" modified="201111142132" changecount="4">
