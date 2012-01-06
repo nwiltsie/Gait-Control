@@ -631,12 +631,15 @@ Let \rho_1 be the desired internal radius of the coil, and let \rho_2 be the rad
 
 If we want an internal radius of 1.5\,in, then $$\rho_1 = 0.019\,m$$ and </pre>
 </div>
-<div title="2012-01-02 helmholtz coil simulation" modifier="YourName" created="201201022106" modified="201201022112" tags="journal" changecount="4">
+<div title="2012-01-02 helmholtz coil simulation" modifier="YourName" created="201201022106" modified="201201022129" tags="journal" changecount="6">
 <pre>In running the helmholtz coil simulation, I realized that my previous parameters of d=0.0641 in and n = 600 would cause the coils to intersect each other. I reduced n to 400, which gives a total power of 678 W/coil. When constructed in FEMM, this gives [[../Magnetics_testing/Coil_Simulation/helmholtz_coil.ans|../Magnetics_testing/Coil_Simulation/helmholtz_coil.ans]], and the resulting magnetic field looks like [[../Magnetics_testing/Coil_Simulation/helmholtz_coil.pdf|../Magnetics_testing/Coil_Simulation/helmholtz_coil.pdf]], which shows a very constant region of roughly 2.4T in the area between the coils. However, this will require 30A of current to generate.
 
 Above done at git commit 8f4daf479b248fd36fbe6573d62dbe6097227459
 
-Throughout this analysis, however, I've been neglecting the magnetic effects of the MRF. This is almost certainly a very significant mistake. I will now add the MRF to the simulation. </pre>
+Throughout this analysis, however, I've been neglecting the magnetic effects of the MRF. This is almost certainly a very significant mistake. I will now add the MRF to the simulation. 
+
+!{{ts{2/01/12 16:28}}}
+I've added the MRF to the simulation. The difference was not as great as I imagined: the .fem and .ans files from above contain the MRF as of commit bbeea9dd3e93161bf6a651cc960d0971365ec5c3 and the field inside the MRF now ranges from about 0.27 at the center to 0.43 at the radial edge. This is almost exactly the field strength we are trying to achieve. The plot of field strength is in [[../Magnetics_testing/Coil_Simulation/helmholtz_field_MRF.pdf|../Magnetics_testing/Coil_Simulation/helmholtz_field_MRF.pdf]]</pre>
 </div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
@@ -686,8 +689,8 @@ Error: #f88
 
 </pre>
 </div>
-<div title="DefaultTiddlers" modifier="RobinDeits" created="201012042255" modified="201012042255" changecount="2">
-<pre>[[journal]]</pre>
+<div title="DefaultTiddlers" modifier="YourName" created="201012042255" modified="201201042142" changecount="3">
+<pre>[[Status]] [[journal]]</pre>
 </div>
 <div title="ExtendTagButtonPlugin" modifier="MPTW" created="201004041418" modified="201009151231" tags="systemConfig">
 <pre>/***
@@ -1509,8 +1512,10 @@ window.getBackupPath = function(localPath) {
 <pre>MPTW is a distribution or edition of TiddlyWiki that includes a standard TiddlyWiki core packaged with some plugins designed to improve usability and provide a better way to organise your information. For more information see http://mptw.tiddlyspot.com/.
 </pre>
 </div>
-<div title="MainMenu" modifier="RobinDeits" created="201012042255" modified="201012052145" changecount="3">
-<pre>[[Journals|journal]] [[Setup]]</pre>
+<div title="MainMenu" modifier="YourName" created="201012042255" modified="201201042142" changecount="4">
+<pre>[[Status]]
+[[Journals|journal]]
+[[Setup]]</pre>
 </div>
 <div title="MathJaxPlugin" modifier="RobinDeits" created="201111142113" tags="systemConfig" changecount="1">
 <pre>/***
@@ -2140,7 +2145,7 @@ h1,h2,h3,h4,h5,h6 {
 URL: http://mptw.tiddlyspot.com/upgrade.html
 </pre>
 </div>
-<div title="MptwUserConfigPlugin" modifier="RobinDeits" created="201004041418" modified="201012052253" tags="systemConfig" changecount="9">
+<div title="MptwUserConfigPlugin" modifier="YourName" created="201004041418" modified="201201042142" tags="systemConfig" changecount="10">
 <pre>/***
 |Description:|A place to put your config tweaks so they aren't overwritten when you upgrade MPTW|
 See http://www.tiddlywiki.org/wiki/Configuration_Options for other options you can set. In some cases where there are clashes with other plugins it might help to rename this to zzMptwUserConfigPlugin so it gets executed last.
@@ -2153,7 +2158,7 @@ config.mptwJournalFormat = 'YYYY-0MM-0DD';
 
 
 // example: set the theme you want to start with
-config.options.txtTheme = 'MptwRoundTheme';
+config.options.txtTheme = 'MptwStandardTheme';
 
 config.options.chkSaveBackups = false;
 config.options.chkAutoSave = true;
@@ -2923,6 +2928,10 @@ Load the FirefoxPrivileges from tiddywiki.org&lt;/a&gt;
 </div>
 <div title="SiteTitle" modifier="RobinDeits" created="201012042256" modified="201111100219" changecount="4">
 <pre>MR Robot</pre>
+</div>
+<div title="Status" modifier="YourName" created="201201042143" changecount="1">
+<pre>!Tasks
+*Meet with Nick on Friday to discuss coil designs</pre>
 </div>
 <div title="StyleSheet" modifier="RobinDeits" created="201108111746" changecount="1">
 <pre>.shrink img { width:50% } 
