@@ -644,8 +644,10 @@ I've added the MRF to the simulation. The difference was not as great as I imagi
 <div title="2012-01-06 Meeting with Nick" modifier="YourName" created="201201101951" modified="201201102008" tags="journal" changecount="2">
 <pre>Our next step is to check whether changing the orientation of the coils will actually affect the field direction within the MR fluid. </pre>
 </div>
-<div title="2012-01-10 Tilting the coil (sim)" modifier="YourName" created="201201102006" modified="201201102011" tags="journal" changecount="4">
-<pre>The first step in trying different angles is to switch to a planar simulation (instead of axisymmetric). I did this by mirroring all the features from [[../Magnetics_testing/Coil_simulation/helmholtz_coil.fem|../Magnetics_testing/Coil_simulation/helmholtz_coil.fem]] to create [[../Magnetics_testing/Coil_simulation/helmholtz_coil_planar.fem|../Magnetics_testing/Coil_simulation/helmholtz_coil_planar.fem]]. I set the depth to be 100m, which should be effectively infinite. The field from this can be seen in [[../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar.pdf|../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar.pdf]]. Changing the depth to 1000 yielded an identical result: [[../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar_1000.pdf|../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar_1000.pdf]]</pre>
+<div title="2012-01-10 Tilting the coil (sim)" modifier="YourName" created="201201102006" modified="201201102226" tags="journal" changecount="5">
+<pre>The first step in trying different angles is to switch to a planar simulation (instead of axisymmetric). I did this by mirroring all the features from [[../Magnetics_testing/Coil_simulation/helmholtz_coil.fem|../Magnetics_testing/Coil_simulation/helmholtz_coil.fem]] to create [[../Magnetics_testing/Coil_simulation/helmholtz_coil_planar.fem|../Magnetics_testing/Coil_simulation/helmholtz_coil_planar.fem]]. I set the depth to be 100m, which should be effectively infinite. The field from this can be seen in [[../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar.pdf|../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar.pdf]]. Changing the depth to 1000 yielded an identical result: [[../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar_1000.pdf|../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar_1000.pdf]]
+
+As of git commit 539457fb7ca9c4d67c27df7bc9948201df3b65b0 I have changed [[generate_coil.m]] to </pre>
 </div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
@@ -4946,6 +4948,9 @@ merge(config.macros,{
 ----
 filesize (130556) is larger than FileDrop limit (32768)...
 additional content has been omitted</pre>
+</div>
+<div title="generate_coil.m" modifier="YourName" created="201201102226" changecount="1">
+<pre>[[../Magnetics_testing/Coil_simulation/generate_coil.m|../Magnetics_testing/Coil_simulation/generate_coil.m]]</pre>
 </div>
 <div title="journal" modifier="RobinDeits" created="201110310420" changecount="1" taggly.sortby="created" taggly.sortorder="desc">
 <pre></pre>
