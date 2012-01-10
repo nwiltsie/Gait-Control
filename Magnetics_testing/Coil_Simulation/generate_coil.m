@@ -1,5 +1,8 @@
 function generate_coil()
 
+%% Initial Parameters
+coil_tilt_rad = 0;
+
 wire_dia_m = 0.0641 * 0.0254;
 coil_inner_r_m = 1.5 / 2 * 0.0254;
 n = 400;
@@ -13,16 +16,21 @@ I_A = 22.28;
 
 model_file = 'helmholtz_coil.fem';
 
+%% Document setup
 openfemm;
 
 newdocument(0);
 freq = 0;
 units = 'meters';
-type = 'axi';
+type = 'planar';
 precision = 1e-008;
-depth = 0;
+depth = 100;
 minangle = 30;
 mi_probdef(freq, units, type, precision, depth, minangle);
+
+%% Geometry for coil rotation
+coil_rot_mat = [cos(coil_tilt_rad), -sin(coil_tilt_rad);
+				sin(coil_tilt_rad), cos(coil_tilt_rad)];
 
 %% Add the air material
 matname = 'Air';
@@ -100,40 +108,60 @@ end
 mi_addboundprop('boundary', 0, 0, 0, 0, 0, 0, 0, 0, 4); % periodic boundary
 
 %% Draw the coils
-top_coil_center = [coil_center_r_m, coil_center_r_m / 2];
-bottom_coil_center = [coil_center_r_m, -coil_center_r_m / 2];
+top_pos_coil_center = coil_rot_mat * [coil_center_r_m; coil_center_r_m / 2];
+bottom_pos_coil_center = coil_rot_mat * [coil_center_r_m; -coil_center_r_m / 2];
+top_neg_coil_center = coil_rot_mat * [-coil_center_r_m; coil_center_r_m / 2];
+bottom_neg_coil_center = coil_rot_mat * [-coil_center_r_m; -coil_center_r_m / 2];
 
-TC_1 = top_coil_center + [0, -bundle_r_m];
-TC_2 = top_coil_center + [0, bundle_r_m];
+TPC_1 = top_pos_coil_center + coil_rot_mat * [0; -bundle_r_m];
+TPC_2 = top_pos_coil_center + coil_rot_mat * [0; bundle_r_m];
 
-BC_1 = bottom_coil_center + [0, -bundle_r_m];
-BC_2 = bottom_coil_center + [0, bundle_r_m];
+BPC_1 = bottom_pos_coil_center + coil_rot_mat * [0; -bundle_r_m];
+BPC_2 = bottom_pos_coil_center + coil_rot_mat * [0; bundle_r_m];
 
-mi_addnode(TC_1(1), TC_1(2));
-mi_addnode(TC_2(1), TC_2(2));
-mi_addnode(BC_1(1), BC_1(2));
-mi_addnode(BC_2(1), BC_2(2));
+TNC_1 = top_neg_coil_center + coil_rot_mat * [0; -bundle_r_m];
+TNC_2 = top_neg_coil_center + coil_rot_mat * [0; bundle_r_m];
 
-mi_addarc(TC_1(1), TC_1(2), TC_2(1), TC_2(2), 180, 1);
-mi_addarc(TC_2(1), TC_2(2), TC_1(1), TC_1(2), 180, 1);
-mi_addarc(BC_1(1), BC_1(2), BC_2(1), BC_2(2), 180, 1);
-mi_addarc(BC_2(1), BC_2(2), BC_1(1), BC_1(2), 180, 1);
+BNC_1 = bottom_neg_coil_center + coil_rot_mat * [0; -bundle_r_m];
+BNC_2 = bottom_neg_coil_center + coil_rot_mat * [0; bundle_r_m];
+
+mi_addnode(TPC_1(1), TPC_1(2));
+mi_addnode(TPC_2(1), TPC_2(2));
+mi_addnode(BPC_1(1), BPC_1(2));
+mi_addnode(BPC_2(1), BPC_2(2));
+
+mi_addnode(TNC_1(1), TNC_1(2));
+mi_addnode(TNC_2(1), TNC_2(2));
+mi_addnode(BNC_1(1), BNC_1(2));
+mi_addnode(BNC_2(1), BNC_2(2));
+
+mi_addarc(TPC_1(1), TPC_1(2), TPC_2(1), TPC_2(2), 180, 1);
+mi_addarc(TPC_2(1), TPC_2(2), TPC_1(1), TPC_1(2), 180, 1);
+mi_addarc(BPC_1(1), BPC_1(2), BPC_2(1), BPC_2(2), 180, 1);
+mi_addarc(BPC_2(1), BPC_2(2), BPC_1(1), BPC_1(2), 180, 1);
+
+mi_addarc(TNC_1(1), TNC_1(2), TNC_2(1), TNC_2(2), 180, 1);
+mi_addarc(TNC_2(1), TNC_2(2), TNC_1(1), TNC_1(2), 180, 1);
+mi_addarc(BNC_1(1), BNC_1(2), BNC_2(1), BNC_2(2), 180, 1);
+mi_addarc(BNC_2(1), BNC_2(2), BNC_1(1), BNC_1(2), 180, 1);
 
 %% Draw the boundary
-bound_top = [0, coil_center_r_m * 2];
-bound_bottom = [0, -coil_center_r_m * 2];
+bound_top = [0; coil_center_r_m * 2];
+bound_bottom = [0; -coil_center_r_m * 2];
 
 mi_addnode(bound_top(1), bound_top(2));
 mi_addnode(bound_bottom(1), bound_bottom(2));
 mi_addarc(bound_bottom(1), bound_bottom(2), bound_top(1), bound_top(2), 180, 1);
-mi_selectarcsegment(bound_top(1), bound_top(2));
+mi_addarc(bound_top(1), bound_top(2), bound_bottom(1), bound_bottom(2), 180, 1);
+mi_selectarcsegment(bound_top(1)+0.001, bound_top(2));
+mi_selectarcsegment(bound_top(1)-0.001, bound_top(2));
 mi_setarcsegmentprop(1, 'boundary', 0, 0);
 mi_clearselected;
-mi_addsegment(bound_bottom(1), bound_bottom(2), bound_top(1), bound_top(2));
 
 %% Fill the empty space with air
-mi_addblocklabel(0.001, -coil_center_r_m);
-mi_selectlabel(0.001, -coil_center_r_m);
+air_pos = coil_rot_mat * [0.001; -coil_center_r_m];
+mi_addblocklabel(air_pos(1), air_pos(2));
+mi_selectlabel(air_pos(1), air_pos(2));
 
 blockname = 'Air';
 automesh = 1;
@@ -149,10 +177,10 @@ mi_clearselected;
 fluid_radius_m = 0.5 * 0.0254;
 fluid_thickness_m = 0.125 * 0.0254;
 
-MRF_1 = [fluid_radius_m, fluid_thickness_m / 2];
-MRF_2 = [0, fluid_thickness_m / 2];
-MRF_3 = [0, -fluid_thickness_m / 2];
-MRF_4 = [fluid_radius_m, -fluid_thickness_m / 2];
+MRF_1 = [fluid_radius_m; fluid_thickness_m / 2];
+MRF_2 = [-fluid_radius_m; fluid_thickness_m / 2];
+MRF_3 = [-fluid_radius_m; -fluid_thickness_m / 2];
+MRF_4 = [fluid_radius_m; -fluid_thickness_m / 2];
 
 mi_addnode(MRF_1(1), MRF_1(2));
 mi_addnode(MRF_2(1), MRF_2(2));
@@ -174,8 +202,10 @@ mi_clearselected;
 
 
 %% Energize the coils
-mi_addblocklabel(top_coil_center(1), top_coil_center(2));
-mi_selectlabel(top_coil_center(1), top_coil_center(2));
+mi_addblocklabel(top_pos_coil_center(1), top_pos_coil_center(2));
+mi_addblocklabel(bottom_pos_coil_center(1), bottom_pos_coil_center(2));
+mi_selectlabel(top_pos_coil_center(1), top_pos_coil_center(2));
+mi_selectlabel(bottom_pos_coil_center(1), bottom_pos_coil_center(2));
 blockname = 'copper_coil';
 automesh = 1;
 meshsize = 0;
@@ -186,8 +216,17 @@ turns = n;
 mi_setblockprop(blockname, automesh, meshsize, incircuit, magdir, group, turns);
 mi_clearselected;
 
-mi_addblocklabel(bottom_coil_center(1), bottom_coil_center(2));
-mi_selectlabel(bottom_coil_center(1), bottom_coil_center(2));
+mi_addblocklabel(top_neg_coil_center(1), top_neg_coil_center(2));
+mi_addblocklabel(bottom_neg_coil_center(1), bottom_neg_coil_center(2));
+mi_selectlabel(top_neg_coil_center(1), top_neg_coil_center(2));
+mi_selectlabel(bottom_neg_coil_center(1), bottom_neg_coil_center(2));
+blockname = 'copper_coil';
+automesh = 1;
+meshsize = 0;
+incircuit = 'coil_circuit';
+magdir = 0;
+group = 1;
+turns = -n;
 mi_setblockprop(blockname, automesh, meshsize, incircuit, magdir, group, turns);
 mi_clearselected;
 
