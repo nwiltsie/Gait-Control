@@ -641,6 +641,12 @@ Throughout this analysis, however, I've been neglecting the magnetic effects of 
 !{{ts{2/01/12 16:28}}}
 I've added the MRF to the simulation. The difference was not as great as I imagined: the .fem and .ans files from above contain the MRF as of commit bbeea9dd3e93161bf6a651cc960d0971365ec5c3 and the field inside the MRF now ranges from about 0.27 at the center to 0.43 at the radial edge. This is almost exactly the field strength we are trying to achieve. The plot of field strength is in [[../Magnetics_testing/Coil_Simulation/helmholtz_field_MRF.pdf|../Magnetics_testing/Coil_Simulation/helmholtz_field_MRF.pdf]]</pre>
 </div>
+<div title="2012-01-06 Meeting with Nick" modifier="YourName" created="201201101951" modified="201201102008" tags="journal" changecount="2">
+<pre>Our next step is to check whether changing the orientation of the coils will actually affect the field direction within the MR fluid. </pre>
+</div>
+<div title="2012-01-10 Tilting the coil (sim)" modifier="YourName" created="201201102006" modified="201201102011" tags="journal" changecount="4">
+<pre>The first step in trying different angles is to switch to a planar simulation (instead of axisymmetric). I did this by mirroring all the features from [[../Magnetics_testing/Coil_simulation/helmholtz_coil.fem|../Magnetics_testing/Coil_simulation/helmholtz_coil.fem]] to create [[../Magnetics_testing/Coil_simulation/helmholtz_coil_planar.fem|../Magnetics_testing/Coil_simulation/helmholtz_coil_planar.fem]]. I set the depth to be 100m, which should be effectively infinite. The field from this can be seen in [[../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar.pdf|../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar.pdf]]. Changing the depth to 1000 yielded an identical result: [[../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar_1000.pdf|../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar_1000.pdf]]</pre>
+</div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
 |Name:|CloseOnCancelPlugin|
@@ -2929,9 +2935,9 @@ Load the FirefoxPrivileges from tiddywiki.org&lt;/a&gt;
 <div title="SiteTitle" modifier="RobinDeits" created="201012042256" modified="201111100219" changecount="4">
 <pre>MR Robot</pre>
 </div>
-<div title="Status" modifier="YourName" created="201201042143" changecount="1">
+<div title="Status" modifier="YourName" created="201201042143" modified="201201101951" changecount="2">
 <pre>!Tasks
-*Meet with Nick on Friday to discuss coil designs</pre>
+*check whether changing the orientation of the coils will actually affect the field direction within the MR fluid</pre>
 </div>
 <div title="StyleSheet" modifier="RobinDeits" created="201108111746" changecount="1">
 <pre>.shrink img { width:50% } 
