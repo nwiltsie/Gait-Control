@@ -1,7 +1,7 @@
 function generate_coil_planar()
 
 %% Initial Parameters
-coil_tilt_rad = 0;
+coil_tilt_rad = pi/4;
 
 wire_dia_m = 0.0641 * 0.0254;
 coil_inner_r_m = 1.5 / 2 * 0.0254;
@@ -146,8 +146,8 @@ mi_addarc(BNC_1(1), BNC_1(2), BNC_2(1), BNC_2(2), 180, 1);
 mi_addarc(BNC_2(1), BNC_2(2), BNC_1(1), BNC_1(2), 180, 1);
 
 %% Draw the boundary
-bound_top = [0; coil_center_r_m * 2];
-bound_bottom = [0; -coil_center_r_m * 2];
+bound_top = coil_rot_mat * [0; coil_center_r_m * 2];
+bound_bottom = coil_rot_mat * [0; -coil_center_r_m * 2];
 
 mi_addnode(bound_top(1), bound_top(2));
 mi_addnode(bound_bottom(1), bound_bottom(2));
@@ -233,6 +233,31 @@ mi_clearselected;
 mi_saveas(model_file);
 mi_zoomnatural;
 mi_refreshview;
+mi_analyze(0);
+mi_loadsolution
+
+%% Analyze the result
+test_x_vals = linspace(-fluid_radius_m + 0.0001, fluid_radius_m - 0.0001, 100);
+BXs = [];
+BYs = []; 
+for i = 1:length(test_x_vals)
+	point_vals = mo_getpointvalues(test_x_vals(i), 0);
+	BXs(end+1) = point_vals(2);
+	BYs(end+1) = point_vals(3);
+end
+
+B_mags = (BXs .^ 2 + BYs .^ 2) .^ (.5);
+B_angles = atan2(BYs, BXs);
+
+figure();
+[AX, H1, H2] = plotyy(test_x_vals, B_mags, test_x_vals, B_angles*180/pi);
+set(get(AX(1), 'YLabel'),'String', 'B Field Magnitude (T)');
+set(get(AX(2), 'YLabel'), 'String', 'B Field Angle (degrees)');
+
+B_mag = mean(B_mags)
+B_mag_err = std(B_mags)
+B_angle = mean(B_angles)
+B_angle_err = std(B_angles)
 
 
 

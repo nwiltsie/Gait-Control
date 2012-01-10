@@ -644,10 +644,23 @@ I've added the MRF to the simulation. The difference was not as great as I imagi
 <div title="2012-01-06 Meeting with Nick" modifier="YourName" created="201201101951" modified="201201102008" tags="journal" changecount="2">
 <pre>Our next step is to check whether changing the orientation of the coils will actually affect the field direction within the MR fluid. </pre>
 </div>
-<div title="2012-01-10 Tilting the coil (sim)" modifier="YourName" created="201201102006" modified="201201102226" tags="journal" changecount="5">
+<div title="2012-01-10 Tilting the coil (sim)" modifier="YourName" created="201201102006" modified="201201102304" tags="journal" changecount="10">
 <pre>The first step in trying different angles is to switch to a planar simulation (instead of axisymmetric). I did this by mirroring all the features from [[../Magnetics_testing/Coil_simulation/helmholtz_coil.fem|../Magnetics_testing/Coil_simulation/helmholtz_coil.fem]] to create [[../Magnetics_testing/Coil_simulation/helmholtz_coil_planar.fem|../Magnetics_testing/Coil_simulation/helmholtz_coil_planar.fem]]. I set the depth to be 100m, which should be effectively infinite. The field from this can be seen in [[../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar.pdf|../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar.pdf]]. Changing the depth to 1000 yielded an identical result: [[../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar_1000.pdf|../Magnetics_testing/Coil_simulation/helmholtz_field_MRF_planar_1000.pdf]]
 
-As of git commit 539457fb7ca9c4d67c27df7bc9948201df3b65b0 I have changed [[generate_coil.m]] to </pre>
+As of git commit 539457fb7ca9c4d67c27df7bc9948201df3b65b0 I have changed [[generate_coil.m]] to output the planar version of the coil as helmholtz_coil.fem. 
+
+As of commit c8ee9cc2baabf649bf7c8bd102ba9c7ba182d2dc I've separated generate_coil into generate_coil_axi and generate_coil_planar and created separate output femm files. 
+
+!{{ts{10/01/12 17:58}}}
+In order to check the effect of changing the coil orientation, I've updated generate_coil_planar to plot the magnitude and angle of the B field for the entire width of the MRF. The result from the original orientation (vertical magnetic field) is stored in [[../Magnetics_testing/Coil_simulation/fig/field_mag_and_angle_planar.fig|../Magnetics_testing/Coil_simulation/fig/field_mag_and_angle_planar.fig]], and the overall result is:
+|B| = 0.1278 +- 0.0202 T
+angle = -1.5711 +- 0.0025 rad
+
+Tilting the coil by 45 degrees gives [[../Magnetics_testing/Coil_simulation/fig/field_mag_and_angle_planar_45.fig|../Magnetics_testing/Coil_simulation/fig/field_mag_and_angle_planar_45.fig]] and this result:
+|B| = 0.4799 +- 0.0547 T
+angle = -0.1925 +- 0.0659 rad = -11.03 +- 3.776 degrees
+
+However, as the graph shows, there is a big variation in magnitude and angle in the roughly 4mm closest to the edge of the fluid, with the field dropping by about 0.2T and the angle decreasing by about 15 degrees. </pre>
 </div>
 <div title="CloseOnCancelPlugin" modifier="MPTW" created="201004131209" modified="201009151231" tags="systemConfig">
 <pre>/***
